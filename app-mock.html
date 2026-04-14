@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flutter App Mock — 3ロール</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-lt:#E6F1FB;--blue-md:#378ADD;--blue-dk:#0C447C;
+  --teal:#0F6E56;--teal-lt:#E1F5EE;--teal-md:#1D9E75;
+  --amber:#854F0B;--amber-lt:#FAEEDA;--amber-md:#EF9F27;
+  --red:#A32D2D;--red-lt:#FCEBEB;
+  --purple-lt:#EEEDFE;--purple-dk:#3C3489;
+  --gray-lt:#F1EFE8;--gray-dk:#444441;
+  --bg:#f0efe9;--surface:#ffffff;--border:#e4e3dc;
+  --text:#1a1a18;--text2:#666660;--text3:#aaa9a0;
+}
+
+body{
+  font-family:'Noto Sans JP',-apple-system,sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  padding:24px 16px 40px;
+}
+
+/* ===== ROLE SWITCHER ===== */
+.role-switcher{
+  display:flex;justify-content:center;gap:0;
+  background:var(--surface);border-radius:14px;
+  border:0.5px solid var(--border);
+  padding:4px;width:fit-content;margin:0 auto 32px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.role-btn{
+  padding:8px 20px;border-radius:10px;border:none;
+  font-size:12px;font-weight:500;font-family:inherit;
+  cursor:pointer;color:var(--text2);background:transparent;
+  transition:all .2s;white-space:nowrap;
+}
+.role-btn.on{
+  color:#fff;
+}
+.role-btn[data-role="scout"].on{background:var(--blue)}
+.role-btn[data-role="customer"].on{background:#854F0B}
+.role-btn[data-role="agency"].on{background:var(--teal)}
+
+/* ===== ROLE PANELS ===== */
+.role-panel{display:none}
+.role-panel.on{display:block}
+
+/* ===== SCREEN TABS ===== */
+.screen-tabs{
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:center;
+  margin-bottom:24px;
+}
+.stab{
+  padding:5px 14px;border-radius:20px;
+  border:0.5px solid var(--border);
+  font-size:11px;font-weight:500;font-family:inherit;
+  cursor:pointer;color:var(--text2);background:var(--surface);
+  transition:all .15s;
+}
+.stab.on{color:#fff}
+.scout-tab.on{background:var(--blue);border-color:var(--blue)}
+.customer-tab.on{background:#854F0B;border-color:#854F0B}
+.agency-tab.on{background:var(--teal);border-color:var(--teal)}
+
+/* ===== PHONE FRAME ===== */
+.phones{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.phone-label{font-size:11px;font-weight:500;color:var(--text2)}
+.phone{
+  width:340px;
+  background:#111118;
+  border-radius:44px;
+  padding:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  flex-shrink:0;
+}
+.notch-bar{
+  width:110px;height:26px;background:#111118;
+  border-radius:13px;margin:0 auto 6px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.notch-cam{width:9px;height:9px;border-radius:50%;background:#222230}
+.screen{
+  background:#f7f6f0;border-radius:32px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* SINGLE SCREEN */
+.sscreen{display:none}
+.sscreen.on{display:flex;flex-direction:column}
+
+/* ===== STATUS BAR ===== */
+.statusbar{
+  display:flex;justify-content:space-between;
+  padding:8px 18px 4px;
+  font-size:10px;color:#888;
+  background:#f7f6f0;flex-shrink:0;
+}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  display:flex;align-items:center;
+  padding:8px 14px 10px;
+  background:#fff;
+  border-bottom:0.5px solid #eae9e2;
+  flex-shrink:0;gap:8px;
+}
+.tb-back{
+  width:30px;height:30px;border-radius:8px;
+  background:#f1efe8;border:none;cursor:pointer;
+  font-size:13px;color:#555;display:flex;align-items:center;justify-content:center;
+}
+.tb-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
+.tb-action{font-size:12px;font-weight:500;margin-left:auto;cursor:pointer;white-space:nowrap}
+
+/* ===== HERO HEADERS ===== */
+.hero-scout{
+  background:var(--blue);
+  padding:18px 16px 22px;flex-shrink:0;
+}
+.hero-customer{
+  background:linear-gradient(135deg,#6B3A1F 0%,#99521A 100%);
+  padding:18px 16px 22px;flex-shrink:0;
+}
+.hero-agency{
+  background:linear-gradient(135deg,#0a4a38 0%,#0F6E56 100%);
+  padding:18px 16px 22px;flex-shrink:0;
+}
+.hero-greeting{font-size:11px;opacity:.7;color:#fff;margin-bottom:2px}
+.hero-name{font-size:19px;font-weight:700;color:#fff}
+.hero-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px}
+
+/* ===== BODY ===== */
+.sbody{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
+.sbody-np{flex:1;overflow-y:auto}
+
+/* ===== BOTTOM NAV ===== */
+.bnav{
+  display:flex;background:#fff;
+  border-top:0.5px solid #eae9e2;
+  padding:8px 0 14px;flex-shrink:0;
+}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.bn-ic{font-size:18px;line-height:1.2}
+.bn-lb{font-size:9px;color:#bbb;font-weight:500}
+.bn-lb.act{color:var(--blue)}
+.bn-dot{width:4px;height:4px;border-radius:2px;background:var(--blue);margin:1px auto 0}
+.bn-fab{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;margin-top:-8px;
+}
+
+/* ===== CARDS ===== */
+.card{background:#fff;border-radius:12px;border:0.5px solid #eae9e2;overflow:hidden}
+.card-pad{padding:12px 14px}
+.card-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px}
+
+/* ===== KPI GRID ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi-c{background:#fff;border-radius:10px;padding:10px 8px;text-align:center;border:0.5px solid #eae9e2}
+.kpi-n{font-size:22px;font-weight:700;color:var(--text)}
+.kpi-l{font-size:9px;color:var(--text2);margin:2px 0}
+.kpi-bar{height:3px;background:#eae9e2;border-radius:2px}
+.kpi-fill{height:100%;border-radius:2px;background:var(--blue)}
+.kpi-t{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* ===== ALERT BOX ===== */
+.alert-box{
+  background:var(--amber-lt);border:0.5px solid var(--amber-md);
+  border-radius:10px;padding:10px 12px;cursor:pointer;
+}
+.alert-t{font-size:12px;font-weight:700;color:var(--amber)}
+.alert-b{font-size:10px;color:#854F0B;margin-top:2px;line-height:1.5}
+
+/* ===== CAST ROWS ===== */
+.cast-row{
+  background:#fff;border:0.5px solid #eae9e2;
+  border-radius:10px;padding:10px 12px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:background .1s;
+}
+.cast-row:active{background:#f7f6f0}
+.cast-row.warn{border-color:var(--amber-md);background:#fffdf7}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+.cast-info{flex:1;min-width:0}
+.cast-nm{font-size:13px;font-weight:700;color:var(--text)}
+.cast-sb{font-size:10px;color:var(--text2);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:500;white-space:nowrap;flex-shrink:0}
+
+/* ===== FORM ===== */
+.flabel{font-size:10px;color:var(--text2);margin-bottom:3px;font-weight:500}
+.frow{
+  background:#fff;border:0.5px solid #ddd;border-radius:10px;
+  padding:10px 12px;display:flex;align-items:center;
+  justify-content:space-between;min-height:42px;cursor:pointer;
+}
+.fval{font-size:13px;color:var(--text)}
+.fph{font-size:13px;color:#ccc}
+.fchev{font-size:9px;color:#ccc}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.chip{
+  font-size:11px;padding:4px 10px;border-radius:20px;
+  border:0.5px solid #ddd;background:#fff;color:#888;cursor:pointer;
+  font-family:inherit;transition:all .1s;
+}
+.divline{border:none;border-top:0.5px solid #eae9e2;margin:2px 0}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0}
+.tog-l{font-size:12px;color:var(--text)}
+.tog{
+  width:40px;height:22px;border-radius:11px;
+  background:#ddd;position:relative;cursor:pointer;
+  transition:background .2s;border:none;flex-shrink:0;
+}
+.tog.on{background:var(--blue)}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on::after{transform:translateX(18px)}
+.memo{
+  width:100%;background:#fff;border:0.5px solid #ddd;
+  border-radius:10px;padding:10px 12px;font-size:12px;
+  color:#888;min-height:64px;resize:none;font-family:inherit;
+}
+.savebtn{
+  width:100%;border:none;border-radius:12px;padding:13px;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+
+/* ===== DETAIL HERO ===== */
+.detail-hero{
+  padding:20px 16px 24px;text-align:center;flex-shrink:0;
+}
+.detail-av{
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,.2);margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;color:#fff;
+}
+.detail-nm{font-size:18px;font-weight:700;color:#fff}
+.detail-st{font-size:11px;color:rgba(255,255,255,.65);margin-top:4px}
+.status-badge-big{
+  display:inline-block;margin-top:8px;
+  font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;
+}
+
+.action-row{display:flex;gap:6px;padding:12px 14px 0}
+.act-btn{
+  flex:1;padding:9px 4px;border-radius:10px;border:0.5px solid #ddd;
+  background:#fff;font-size:11px;font-weight:700;color:var(--blue);
+  cursor:pointer;text-align:center;font-family:inherit;
+  transition:background .1s;
+}
+.act-btn:active{background:#f0f0f0}
+.act-btn.danger{color:var(--red)}
+
+.info-card-list{padding:12px 14px 0}
+.info-section{background:#fff;border-radius:12px;border:0.5px solid #eae9e2;overflow:hidden;margin-bottom:10px}
+.info-row{display:flex;padding:9px 12px;border-bottom:0.5px solid #f4f3ec}
+.info-row:last-child{border-bottom:none}
+.info-key{font-size:11px;color:var(--text2);width:76px;flex-shrink:0;padding-top:1px}
+.info-val{font-size:12px;color:var(--text);flex:1;font-weight:500}
+
+.hist-item{padding:9px 12px;border-bottom:0.5px solid #f4f3ec;display:flex;gap:10px}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.hist-t{font-size:12px;font-weight:700;color:var(--text)}
+.hist-d{font-size:10px;color:var(--text2);margin-top:1px}
+
+/* search bar */
+.search-bar{
+  margin:10px 14px 6px;background:#fff;border:0.5px solid #ddd;
+  border-radius:10px;padding:9px 12px;
+  display:flex;gap:8px;align-items:center;color:#ccc;font-size:13px;
+}
+.filter-row{
+  padding:4px 14px 10px;display:flex;gap:6px;
+  overflow-x:auto;flex-shrink:0;
+}
+.filter-row::-webkit-scrollbar{display:none}
+
+/* ===== CUSTOMER / AGENCY specific ===== */
+.billing-hero{
+  background:#fff;border-radius:12px;border:0.5px solid #eae9e2;
+  padding:14px;text-align:center;
+}
+.billing-amount{font-size:28px;font-weight:700;color:var(--text)}
+.billing-label{font-size:11px;color:var(--text2);margin-bottom:6px}
+.billing-status{display:inline-block;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;margin-top:6px}
+
+.timeline-item{
+  display:flex;gap:10px;padding:10px 14px;
+  border-bottom:0.5px solid #f4f3ec;
+}
+.timeline-item:last-child{border-bottom:none}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;padding-top:4px}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tl-line{width:1px;flex:1;background:#eae9e2;margin-top:3px}
+.tl-body{flex:1}
+.tl-title{font-size:12px;font-weight:700;color:var(--text)}
+.tl-sub{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.5}
+.tl-date{font-size:10px;color:var(--text3);margin-top:2px}
+
+.notif-item{
+  display:flex;gap:10px;padding:11px 14px;
+  border-bottom:0.5px solid #f4f3ec;cursor:pointer;
+}
+.notif-item.unread{background:#fafaf7}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.notif-body{flex:1}
+.notif-title{font-size:12px;font-weight:700;color:var(--text)}
+.notif-desc{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.5}
+.notif-time{font-size:9px;color:var(--text3);margin-top:3px}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px}
+
+/* metric mini */
+.mini-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini-mc{background:#fff;border-radius:10px;border:0.5px solid #eae9e2;padding:10px 12px}
+.mini-mc-label{font-size:9px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.mini-mc-val{font-size:20px;font-weight:700;color:var(--text)}
+.mini-mc-sub{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* leave form */
+.leave-step{
+  background:var(--red-lt);border:0.5px solid #F09595;
+  border-radius:10px;padding:12px;margin-bottom:10px;
+}
+.leave-step-title{font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px}
+.leave-step-body{font-size:11px;color:#791F1F;line-height:1.7}
+
+/* agency payment row */
+.payment-row{
+  display:flex;align-items:center;
+  padding:10px 12px;border-bottom:0.5px solid #f4f3ec;
+}
+.payment-row:last-child{border-bottom:none}
+.payment-label{flex:1;font-size:12px;color:var(--text)}
+.payment-val{font-size:13px;font-weight:700;color:var(--text);text-align:right}
+.payment-sub{font-size:9px;color:var(--text2);margin-top:1px;text-align:right}
+
+/* section header inside body */
+.sect-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sect-t{font-size:12px;font-weight:700;color:var(--text)}
+.sect-more{font-size:10px;color:var(--blue);cursor:pointer}
+
+/* ===== STATUS colors ===== */
+.s-mensetsu{background:var(--amber-lt);color:var(--amber)}
+.s-taiken{background:var(--purple-lt);color:var(--purple-dk)}
+.s-zaiseki{background:var(--teal-lt);color:var(--teal)}
+.s-funakunin{background:var(--red-lt);color:var(--red)}
+.s-risuke{background:var(--gray-lt);color:var(--gray-dk)}
+
+/* ===== STATUS FLOW ===== */
+.status-flow{display:flex;align-items:center;margin-bottom:14px}
+.sf-step{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.sf-dot{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid #ddd;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#aaa;font-weight:700;
+}
+.sf-dot.done{background:var(--blue);border-color:var(--blue);color:#fff}
+.sf-dot.cur{border-color:var(--blue);color:var(--blue)}
+.sf-lbl{font-size:8px;color:#aaa;white-space:nowrap}
+.sf-lbl.done,.sf-lbl.cur{color:var(--blue)}
+.sf-line{flex:1;height:2px;background:#ddd;margin-bottom:12px}
+.sf-line.done{background:var(--blue)}
+
+</style>
+</head>
+<body>
+
+<!-- ROLE SWITCHER -->
+<div class="role-switcher">
+  <button class="role-btn on" data-role="scout"    onclick="switchRole('scout',this)">スカウト担当者</button>
+  <button class="role-btn"    data-role="customer"  onclick="switchRole('customer',this)">顧客（店舗）</button>
+  <button class="role-btn"    data-role="agency"    onclick="switchRole('agency',this)">業者（紹介会社）</button>
+</div>
+
+<!-- ==============================
+     ROLE: SCOUT
+============================== -->
+<div class="role-panel on" id="role-scout">
+  <div class="screen-tabs">
+    <button class="stab scout-tab on" onclick="switchScreen('scout','home',this)">ホーム</button>
+    <button class="stab scout-tab"    onclick="switchScreen('scout','list',this)">一覧</button>
+    <button class="stab scout-tab"    onclick="switchScreen('scout','reg',this)">新規登録</button>
+    <button class="stab scout-tab"    onclick="switchScreen('scout','detail',this)">詳細</button>
+    <button class="stab scout-tab"    onclick="switchScreen('scout','edit',this)">編集</button>
+    <button class="stab scout-tab"    onclick="switchScreen('scout','notif',this)">通知</button>
+  </div>
+  <div class="phones">
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="notch-bar"><div class="notch-cam"></div></div>
+      <div class="screen">
+
+        <!-- HOME -->
+        <div class="sscreen on" id="scout-home">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="hero-scout">
+            <div class="hero-greeting">おはようございます</div>
+            <div class="hero-name">大橋さん</div>
+            <div class="hero-sub">4月10日（木）· 今月残り 21日</div>
+          </div>
+          <div style="padding:12px 14px 0">
+            <div class="kpi-grid">
+              <div class="kpi-c"><div class="kpi-n">18</div><div class="kpi-l">面接</div><div class="kpi-bar"><div class="kpi-fill" style="width:56%"></div></div><div class="kpi-t">/ 32</div></div>
+              <div class="kpi-c"><div class="kpi-n">11</div><div class="kpi-l">体験</div><div class="kpi-bar"><div class="kpi-fill" style="width:73%"></div></div><div class="kpi-t">/ 15</div></div>
+              <div class="kpi-c"><div class="kpi-n">4</div><div class="kpi-l">入店</div><div class="kpi-bar"><div class="kpi-fill" style="width:53%"></div></div><div class="kpi-t">/ 7.5</div></div>
+            </div>
+          </div>
+          <div class="sbody">
+            <div class="alert-box" onclick="switchScreen('scout','list',document.querySelectorAll('#role-scout .stab')[1])">
+              <div class="alert-t">後追い 2件 対応が必要です</div>
+              <div class="alert-b">佐藤美月 · 田中凛 — 体験から3日経過 →</div>
+            </div>
+            <div>
+              <div class="sect-hd"><div class="sect-t">今日の予定</div><div class="sect-more">すべて</div></div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="cast-row" onclick="switchScreen('scout','detail',document.querySelectorAll('#role-scout .stab')[3])">
+                  <div class="avatar" style="background:#E6F1FB;color:#0C447C">高</div>
+                  <div class="cast-info"><div class="cast-nm">高橋さくら</div><div class="cast-sb">14:00 · 北新地 キャバクラA · A社</div></div>
+                  <span class="badge s-mensetsu">面接</span>
+                </div>
+                <div class="cast-row">
+                  <div class="avatar" style="background:var(--purple-lt);color:var(--purple-dk)">佐</div>
+                  <div class="cast-info"><div class="cast-nm">佐藤美月</div><div class="cast-sb">16:30 · 梅田 ラウンジA · B社</div></div>
+                  <span class="badge s-taiken">体験</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="sect-hd"><div class="sect-t">最近の入店</div></div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">中</div>
+                <div class="cast-info"><div class="cast-nm">中村みな</div><div class="cast-sb">4/8入店 · ミナミ ラウンジB</div></div>
+                <span class="badge s-zaiseki">在籍</span>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item"><div class="bn-ic">⊞</div><div class="bn-lb act">ホーム</div><div class="bn-dot"></div></div>
+            <div class="bn-item" onclick="switchScreen('scout','list',document.querySelectorAll('#role-scout .stab')[1])"><div class="bn-ic">≡</div><div class="bn-lb">一覧</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','reg',document.querySelectorAll('#role-scout .stab')[2])"><div class="bn-ic"><div class="bn-fab" style="background:var(--blue)">+</div></div><div class="bn-lb">登録</div></div>
+            <div class="bn-item"><div class="bn-ic">◎</div><div class="bn-lb">KPI</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','notif',document.querySelectorAll('#role-scout .stab')[5])"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- LIST -->
+        <div class="sscreen" id="scout-list">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar"><div class="tb-title">キャスト一覧</div><div class="tb-action" style="color:var(--blue)">絞り込み ▼</div></div>
+          <div class="sbody-np">
+            <div class="search-bar"><span>🔍</span><span style="font-size:12px;color:#ccc">名前・店舗・源氏名で検索</span></div>
+            <div class="filter-row">
+              <button class="chip" style="background:var(--blue-lt);color:var(--blue-dk);border-color:var(--blue-md)" onclick="fchip(this)">すべて</button>
+              <button class="chip" onclick="fchip(this)">面接</button>
+              <button class="chip" onclick="fchip(this)">体験中</button>
+              <button class="chip" onclick="fchip(this)">在籍</button>
+              <button class="chip" onclick="fchip(this)">後追い</button>
+              <button class="chip" onclick="fchip(this)">退店</button>
+            </div>
+            <div style="padding:0 14px;display:flex;flex-direction:column;gap:7px;padding-bottom:16px">
+              <div class="cast-row warn" onclick="switchScreen('scout','detail',document.querySelectorAll('#role-scout .stab')[3])">
+                <div class="avatar" style="background:var(--amber-lt);color:var(--amber)">佐</div>
+                <div class="cast-info">
+                  <div class="cast-nm">佐藤美月 <span style="font-size:9px;color:var(--amber)">▲後追い</span></div>
+                  <div class="cast-sb">梅田 ラウンジA · B社 麻生</div>
+                </div>
+                <span class="badge s-taiken">体験</span>
+              </div>
+              <div class="cast-row" onclick="switchScreen('scout','detail',document.querySelectorAll('#role-scout .stab')[3])">
+                <div class="avatar" style="background:var(--blue-lt);color:var(--blue-dk)">高</div>
+                <div class="cast-info"><div class="cast-nm">高橋さくら</div><div class="cast-sb">北新地 キャバクラA · A社 田中</div></div>
+                <span class="badge s-mensetsu">面接</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--red-lt);color:var(--red)">田</div>
+                <div class="cast-info">
+                  <div class="cast-nm">田中凛 <span style="font-size:9px;color:var(--amber)">▲後追い</span></div>
+                  <div class="cast-sb">北新地 キャバクラB · C社 佐藤</div>
+                </div>
+                <span class="badge s-taiken">体験</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">中</div>
+                <div class="cast-info"><div class="cast-nm">中村みな</div><div class="cast-sb">ミナミ ラウンジB · B社 鈴木</div></div>
+                <span class="badge s-zaiseki">在籍</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--gray-lt);color:var(--gray-dk)">鈴</div>
+                <div class="cast-info"><div class="cast-nm">鈴木あい</div><div class="cast-sb">神戸 キャバクラC · A社 田中</div></div>
+                <span class="badge s-risuke">リスケ</span>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('scout','home',document.querySelectorAll('#role-scout .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item"><div class="bn-ic">≡</div><div class="bn-lb act">一覧</div><div class="bn-dot"></div></div>
+            <div class="bn-item" onclick="switchScreen('scout','reg',document.querySelectorAll('#role-scout .stab')[2])"><div class="bn-ic"><div class="bn-fab" style="background:var(--blue)">+</div></div><div class="bn-lb">登録</div></div>
+            <div class="bn-item"><div class="bn-ic">◎</div><div class="bn-lb">KPI</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- REGISTER -->
+        <div class="sscreen" id="scout-reg">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('scout','home',document.querySelectorAll('#role-scout .stab')[0])">←</button>
+            <div class="tb-title">キャスト登録</div>
+            <div class="tb-action" style="color:var(--text3)">新規</div>
+          </div>
+          <div class="sbody">
+            <div><div class="flabel">本名 *</div><div class="frow"><span class="fph">例：田中花子</span></div></div>
+            <div><div class="flabel">源氏名（任意）</div><div class="frow"><span class="fph">例：はな</span></div></div>
+            <div class="fgrid">
+              <div><div class="flabel">地域 *</div><div class="frow" onclick="cycleV(this,['北新地','梅田','ミナミ','神戸'])"><span class="fval">北新地</span><span class="fchev">▼</span></div></div>
+              <div><div class="flabel">業種 *</div><div class="frow" onclick="cycleV(this,['キャバクラ','ラウンジ','クラブ'])"><span class="fval">キャバクラ</span><span class="fchev">▼</span></div></div>
+            </div>
+            <div><div class="flabel">店舗名 *</div><div class="frow" onclick="cycleV(this,['キャバクラA','キャバクラB','ラウンジA'])"><span class="fval">キャバクラA</span><span class="fchev">▼</span></div></div>
+            <div class="fgrid">
+              <div><div class="flabel">紹介会社 *</div><div class="frow" onclick="cycleV(this,['A社','B社','C社'])"><span class="fval">A社</span><span class="fchev">▼</span></div></div>
+              <div><div class="flabel">紹介者名</div><div class="frow"><span class="fph">田中</span></div></div>
+            </div>
+            <hr class="divline">
+            <div>
+              <div class="flabel">ステータス *</div>
+              <div class="chips" id="reg-chips">
+                <button class="chip" style="background:var(--amber-lt);color:var(--amber);border-color:var(--amber-md)" onclick="selChip(this,'reg-chips','var(--amber-lt)','var(--amber)','var(--amber-md)')">面接採用</button>
+                <button class="chip" onclick="selChip(this,'reg-chips','var(--purple-lt)','var(--purple-dk)','#AFA9EC')">体験採用</button>
+                <button class="chip" onclick="selChip(this,'reg-chips','var(--gray-lt)','var(--gray-dk)','#B4B2A9')">未定</button>
+                <button class="chip" onclick="selChip(this,'reg-chips','var(--red-lt)','var(--red)','#F09595')">不採用</button>
+                <button class="chip" onclick="selChip(this,'reg-chips','var(--gray-lt)','var(--gray-dk)','#B4B2A9')">リスケ</button>
+              </div>
+            </div>
+            <div class="fgrid">
+              <div><div class="flabel">面接日</div><div class="frow" onclick="pickDate(this)"><span class="fph">日付</span></div></div>
+              <div><div class="flabel">体験日</div><div class="frow" onclick="pickDate(this)"><span class="fph">日付</span></div></div>
+            </div>
+            <div><div class="flabel">入店日</div><div class="frow" onclick="pickDate(this)"><span class="fph">入店確定後に入力</span></div></div>
+            <hr class="divline">
+            <div class="tog-row"><span class="tog-l">後追いフラグ</span><button class="tog" onclick="this.classList.toggle('on')"></button></div>
+            <div class="tog-row"><span class="tog-l">採決済み</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+            <div><div class="flabel">備考</div><textarea class="memo" placeholder="連絡事項・メモ"></textarea></div>
+            <button class="savebtn" style="background:var(--blue);color:#fff" onclick="doSave(this,'scout','detail')">保存する</button>
+            <div style="height:6px"></div>
+          </div>
+        </div>
+
+        <!-- DETAIL -->
+        <div class="sscreen" id="scout-detail">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('scout','list',document.querySelectorAll('#role-scout .stab')[1])">←</button>
+            <div class="tb-title">詳細</div>
+            <div class="tb-action" style="color:var(--blue)" onclick="switchScreen('scout','edit',document.querySelectorAll('#role-scout .stab')[4])">編集</div>
+          </div>
+          <div class="sbody-np">
+            <div class="detail-hero" style="background:var(--blue)">
+              <div class="detail-av">佐</div>
+              <div class="detail-nm">佐藤美月</div>
+              <div class="detail-st">源氏名：さくら</div>
+              <div class="status-badge-big" style="background:rgba(255,255,255,.2);color:#fff">体験中</div>
+            </div>
+            <div class="action-row">
+              <button class="act-btn" onclick="switchScreen('scout','edit',document.querySelectorAll('#role-scout .stab')[4])">ステータス変更</button>
+              <button class="act-btn" style="color:var(--amber)">後追いON</button>
+              <button class="act-btn danger">退店処理</button>
+            </div>
+            <div class="info-card-list">
+              <div style="margin-bottom:8px">
+                <div class="status-flow">
+                  <div class="sf-step"><div class="sf-dot done">✓</div><div class="sf-lbl done">面接</div></div>
+                  <div class="sf-line done"></div>
+                  <div class="sf-step"><div class="sf-dot cur">●</div><div class="sf-lbl cur">体験</div></div>
+                  <div class="sf-line"></div>
+                  <div class="sf-step"><div class="sf-dot">入</div><div class="sf-lbl">入店</div></div>
+                  <div class="sf-line"></div>
+                  <div class="sf-step"><div class="sf-dot">在</div><div class="sf-lbl">在籍</div></div>
+                </div>
+              </div>
+              <div class="info-section">
+                <div class="info-row"><div class="info-key">地域</div><div class="info-val">梅田</div></div>
+                <div class="info-row"><div class="info-key">店舗</div><div class="info-val">ラウンジA</div></div>
+                <div class="info-row"><div class="info-key">紹介会社</div><div class="info-val">B社（鈴木）</div></div>
+                <div class="info-row"><div class="info-key">社担当</div><div class="info-val">麻生</div></div>
+                <div class="info-row"><div class="info-key">面接日</div><div class="info-val">2026/01/03</div></div>
+                <div class="info-row"><div class="info-key">体験日</div><div class="info-val">2026/01/08</div></div>
+                <div class="info-row"><div class="info-key">入店日</div><div class="info-val" style="color:#ccc">未確定</div></div>
+                <div class="info-row"><div class="info-key">後追い</div><div class="info-val" style="color:var(--amber);font-weight:700">ON ▲</div></div>
+              </div>
+              <div class="card-title" style="margin-top:12px;margin-bottom:6px">ステータス履歴</div>
+              <div class="info-section">
+                <div class="hist-item"><div class="tl-left"><div class="tl-dot" style="background:var(--blue)"></div></div><div class="tl-body"><div class="hist-t">体験採用</div><div class="hist-d">2026/01/08 · 麻生が更新</div></div></div>
+                <div class="hist-item"><div class="tl-left"><div class="tl-dot" style="background:#bbb"></div></div><div class="tl-body"><div class="hist-t">面接採用</div><div class="hist-d">2026/01/03 · 麻生が更新</div></div></div>
+              </div>
+              <div style="height:16px"></div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('scout','home',document.querySelectorAll('#role-scout .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','list',document.querySelectorAll('#role-scout .stab')[1])"><div class="bn-ic">≡</div><div class="bn-lb">一覧</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','reg',document.querySelectorAll('#role-scout .stab')[2])"><div class="bn-ic"><div class="bn-fab" style="background:var(--blue)">+</div></div><div class="bn-lb">登録</div></div>
+            <div class="bn-item"><div class="bn-ic">◎</div><div class="bn-lb">KPI</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- EDIT -->
+        <div class="sscreen" id="scout-edit">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('scout','detail',document.querySelectorAll('#role-scout .stab')[3])">←</button>
+            <div class="tb-title">編集</div>
+            <div class="tb-action" style="color:var(--red)">削除</div>
+          </div>
+          <div class="sbody">
+            <div><div class="flabel">本名</div><div class="frow"><span class="fval">佐藤美月</span></div></div>
+            <div><div class="flabel">源氏名</div><div class="frow"><span class="fval">さくら</span></div></div>
+            <div class="fgrid">
+              <div><div class="flabel">地域</div><div class="frow" onclick="cycleV(this,['梅田','北新地','ミナミ'])"><span class="fval">梅田</span><span class="fchev">▼</span></div></div>
+              <div><div class="flabel">業種</div><div class="frow" onclick="cycleV(this,['ラウンジ','キャバクラ'])"><span class="fval">ラウンジ</span><span class="fchev">▼</span></div></div>
+            </div>
+            <div><div class="flabel">店舗名</div><div class="frow" onclick="cycleV(this,['ラウンジA','ラウンジB'])"><span class="fval">ラウンジA</span><span class="fchev">▼</span></div></div>
+            <hr class="divline">
+            <div>
+              <div class="flabel">ステータス</div>
+              <div class="chips" id="edit-chips" style="margin-top:5px">
+                <button class="chip" onclick="selChip(this,'edit-chips','var(--amber-lt)','var(--amber)','var(--amber-md)')">面接採用</button>
+                <button class="chip" style="background:var(--purple-lt);color:var(--purple-dk);border-color:#AFA9EC" onclick="selChip(this,'edit-chips','var(--purple-lt)','var(--purple-dk)','#AFA9EC')">体験採用</button>
+                <button class="chip" onclick="selChip(this,'edit-chips','var(--teal-lt)','var(--teal)','#5DCAA5')">在籍</button>
+                <button class="chip" onclick="selChip(this,'edit-chips','var(--red-lt)','var(--red)','#F09595')">不採用</button>
+                <button class="chip" onclick="selChip(this,'edit-chips','var(--gray-lt)','var(--gray-dk)','#B4B2A9')">リスケ</button>
+              </div>
+            </div>
+            <div class="fgrid">
+              <div><div class="flabel">面接日</div><div class="frow"><span class="fval">1/3</span></div></div>
+              <div><div class="flabel">体験日</div><div class="frow"><span class="fval">1/8</span></div></div>
+            </div>
+            <div><div class="flabel">入店日</div><div class="frow" onclick="pickDate(this)"><span class="fph">入店確定後に入力</span></div></div>
+            <hr class="divline">
+            <div class="tog-row"><span class="tog-l">後追いフラグ</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+            <div class="tog-row"><span class="tog-l">採決済み</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+            <div><div class="flabel">備考</div><textarea class="memo">1/6体験予定が連絡なし、1/8に改めて体験</textarea></div>
+            <button class="savebtn" style="background:var(--blue);color:#fff" onclick="doSave(this,'scout','detail')">変更を保存</button>
+            <div style="height:6px"></div>
+          </div>
+        </div>
+
+        <!-- NOTIF -->
+        <div class="sscreen" id="scout-notif">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar"><div class="tb-title">通知</div><div class="tb-action" style="color:var(--blue)">すべて既読</div></div>
+          <div class="sbody-np">
+            <div class="info-section" style="margin:14px">
+              <div class="notif-item unread" onclick="switchScreen('scout','detail',document.querySelectorAll('#role-scout .stab')[3])">
+                <div class="notif-icon" style="background:var(--amber-lt)">⚡</div>
+                <div class="notif-body">
+                  <div class="notif-title">後追い確認 — 佐藤美月</div>
+                  <div class="notif-desc">体験から3日経過しています。入店確認の連絡をしてください。</div>
+                  <div class="notif-time">今日 9:00</div>
+                </div>
+                <div class="unread-dot"></div>
+              </div>
+              <div class="notif-item unread">
+                <div class="notif-icon" style="background:var(--amber-lt)">⚡</div>
+                <div class="notif-body">
+                  <div class="notif-title">後追い確認 — 田中凛</div>
+                  <div class="notif-desc">体験から3日経過。確認をお願いします。</div>
+                  <div class="notif-time">今日 9:00</div>
+                </div>
+                <div class="unread-dot"></div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--blue-lt)">📅</div>
+                <div class="notif-body">
+                  <div class="notif-title">本日の面接 — 高橋さくら</div>
+                  <div class="notif-desc">14:00 · 北新地 キャバクラA</div>
+                  <div class="notif-time">今日 8:00</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--teal-lt)">✅</div>
+                <div class="notif-body">
+                  <div class="notif-title">入店確定 — 中村みな</div>
+                  <div class="notif-desc">ミナミ ラウンジBへの入店が確定しました。</div>
+                  <div class="notif-time">昨日 17:30</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--gray-lt)">📊</div>
+                <div class="notif-body">
+                  <div class="notif-title">週次KPIレポート</div>
+                  <div class="notif-desc">先週：面接18件 / 体験11件 / 入店4件。目標比 53%</div>
+                  <div class="notif-time">月曜日 9:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('scout','home',document.querySelectorAll('#role-scout .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','list',document.querySelectorAll('#role-scout .stab')[1])"><div class="bn-ic">≡</div><div class="bn-lb">一覧</div></div>
+            <div class="bn-item" onclick="switchScreen('scout','reg',document.querySelectorAll('#role-scout .stab')[2])"><div class="bn-ic"><div class="bn-fab" style="background:var(--blue)">+</div></div><div class="bn-lb">登録</div></div>
+            <div class="bn-item"><div class="bn-ic">◎</div><div class="bn-lb">KPI</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb act">通知</div><div class="bn-dot"></div></div>
+          </div>
+        </div>
+
+      </div><!-- screen -->
+    </div><!-- phone -->
+  </div><!-- phone-wrap -->
+  </div><!-- phones -->
+</div><!-- role-scout -->
+
+
+<!-- ==============================
+     ROLE: CUSTOMER（店舗）
+============================== -->
+<div class="role-panel" id="role-customer">
+  <div class="screen-tabs">
+    <button class="stab customer-tab on" onclick="switchScreen('customer','home',this)">マイページ</button>
+    <button class="stab customer-tab"    onclick="switchScreen('customer','cast',this)">在籍一覧</button>
+    <button class="stab customer-tab"    onclick="switchScreen('customer','detail',this)">キャスト詳細</button>
+    <button class="stab customer-tab"    onclick="switchScreen('customer','billing',this)">請求確認</button>
+    <button class="stab customer-tab"    onclick="switchScreen('customer','leave',this)">退店申請</button>
+    <button class="stab customer-tab"    onclick="switchScreen('customer','notif',this)">通知</button>
+  </div>
+  <div class="phones">
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="notch-bar"><div class="notch-cam"></div></div>
+      <div class="screen">
+
+        <!-- CUSTOMER HOME -->
+        <div class="sscreen on" id="customer-home">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="hero-customer">
+            <div class="hero-greeting">キャバクラA · 北新地</div>
+            <div class="hero-name">店舗マイページ</div>
+            <div class="hero-sub">担当：田中（A社）</div>
+          </div>
+          <div class="sbody">
+            <div class="mini-metrics">
+              <div class="mini-mc"><div class="mini-mc-label">現在の在籍数</div><div class="mini-mc-val">8</div><div class="mini-mc-sub">永久 5 / 在籍料 3</div></div>
+              <div class="mini-mc"><div class="mini-mc-label">今月の請求</div><div class="mini-mc-val" style="font-size:16px">¥396,000</div><div class="mini-mc-sub" style="color:var(--teal)">着金済み</div></div>
+            </div>
+            <div>
+              <div class="sect-hd"><div class="sect-t">在籍中キャスト</div><div class="sect-more" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])">すべて表示</div></div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="cast-row" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">
+                  <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">高</div>
+                  <div class="cast-info"><div class="cast-nm">さくら</div><div class="cast-sb">入店 2026/01/15 · 永久</div></div>
+                  <span class="badge s-zaiseki">在籍</span>
+                </div>
+                <div class="cast-row" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">
+                  <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">み</div>
+                  <div class="cast-info"><div class="cast-nm">みな</div><div class="cast-sb">入店 2026/04/08 · 在籍料</div></div>
+                  <span class="badge s-zaiseki">在籍</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="sect-hd"><div class="sect-t">最近の請求</div><div class="sect-more" onclick="switchScreen('customer','billing',document.querySelectorAll('#role-customer .stab')[3])">詳細</div></div>
+              <div class="info-section">
+                <div class="info-row"><div class="info-key">4月分</div><div class="info-val" style="text-align:right">¥396,000<span style="font-size:9px;color:var(--teal);margin-left:6px">着金済</span></div></div>
+                <div class="info-row"><div class="info-key">3月分</div><div class="info-val" style="text-align:right">¥312,000<span style="font-size:9px;color:var(--teal);margin-left:6px">着金済</span></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item"><div class="bn-ic">⊞</div><div class="bn-lb act" style="color:#854F0B">ホーム</div><div class="bn-dot" style="background:#854F0B"></div></div>
+            <div class="bn-item" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])"><div class="bn-ic">👤</div><div class="bn-lb">在籍</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','billing',document.querySelectorAll('#role-customer .stab')[3])"><div class="bn-ic">💰</div><div class="bn-lb">請求</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','notif',document.querySelectorAll('#role-customer .stab')[5])"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMER CAST LIST -->
+        <div class="sscreen" id="customer-cast">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])">←</button>
+            <div class="tb-title">在籍キャスト一覧</div>
+          </div>
+          <div class="sbody-np">
+            <div style="padding:10px 14px 4px;font-size:11px;color:var(--text2)">キャバクラA · 在籍 8名</div>
+            <div style="padding:0 14px;display:flex;flex-direction:column;gap:7px;padding-bottom:16px">
+              <div class="cast-row" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">さ</div>
+                <div class="cast-info"><div class="cast-nm">さくら</div><div class="cast-sb">入店 2026/01/15 · A社 田中 · 永久</div></div>
+                <span class="badge s-zaiseki">永久</span>
+              </div>
+              <div class="cast-row" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">み</div>
+                <div class="cast-info"><div class="cast-nm">みな</div><div class="cast-sb">入店 2026/04/08 · B社 鈴木 · 在籍料</div></div>
+                <span class="badge" style="background:#E6F1FB;color:#0C447C">在籍料</span>
+              </div>
+              <div class="cast-row" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">あ</div>
+                <div class="cast-info"><div class="cast-nm">あい</div><div class="cast-sb">入店 2026/03/01 · A社 田中 · 永久</div></div>
+                <span class="badge s-zaiseki">永久</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">ゆ</div>
+                <div class="cast-info"><div class="cast-nm">ゆきな</div><div class="cast-sb">入店 2026/02/14 · C社 高橋 · 永久</div></div>
+                <span class="badge s-zaiseki">永久</span>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item"><div class="bn-ic">👤</div><div class="bn-lb act" style="color:#854F0B">在籍</div><div class="bn-dot" style="background:#854F0B"></div></div>
+            <div class="bn-item" onclick="switchScreen('customer','billing',document.querySelectorAll('#role-customer .stab')[3])"><div class="bn-ic">💰</div><div class="bn-lb">請求</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','notif',document.querySelectorAll('#role-customer .stab')[5])"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMER CAST DETAIL -->
+        <div class="sscreen" id="customer-detail">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])">←</button>
+            <div class="tb-title">キャスト詳細</div>
+          </div>
+          <div class="sbody-np">
+            <div class="detail-hero" style="background:linear-gradient(135deg,#6B3A1F,#99521A)">
+              <div class="detail-av">さ</div>
+              <div class="detail-nm">さくら</div>
+              <div class="detail-st">入店日：2026/01/15</div>
+              <div class="status-badge-big" style="background:rgba(255,255,255,.2);color:#fff">永久</div>
+            </div>
+            <div class="action-row">
+              <button class="act-btn" onclick="switchScreen('customer','leave',document.querySelectorAll('#role-customer .stab')[4])">退店申請</button>
+              <button class="act-btn">担当に連絡</button>
+            </div>
+            <div class="info-card-list">
+              <div class="info-section">
+                <div class="info-row"><div class="info-key">紹介会社</div><div class="info-val">A社（田中）</div></div>
+                <div class="info-row"><div class="info-key">在籍種別</div><div class="info-val">永久</div></div>
+                <div class="info-row"><div class="info-key">入店日</div><div class="info-val">2026/01/15</div></div>
+                <div class="info-row"><div class="info-key">出勤日数</div><div class="info-val">86日</div></div>
+              </div>
+              <div style="height:16px"></div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])"><div class="bn-ic">👤</div><div class="bn-lb">在籍</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','billing',document.querySelectorAll('#role-customer .stab')[3])"><div class="bn-ic">💰</div><div class="bn-lb">請求</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMER BILLING -->
+        <div class="sscreen" id="customer-billing">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])">←</button>
+            <div class="tb-title">請求確認</div>
+          </div>
+          <div class="sbody">
+            <div class="billing-hero">
+              <div class="billing-label">2026年4月 請求額</div>
+              <div class="billing-amount">¥396,000</div>
+              <div class="billing-status" style="background:var(--teal-lt);color:var(--teal)">着金確認済 ✓</div>
+            </div>
+            <div class="info-section">
+              <div class="payment-row"><div class="payment-label">紹介料（さくら 入店）</div><div><div class="payment-val">¥60,000</div></div></div>
+              <div class="payment-row"><div class="payment-label">永久料（5名）</div><div><div class="payment-val">¥180,000</div></div></div>
+              <div class="payment-row"><div class="payment-label">在籍顧問料（3名）</div><div><div class="payment-val">¥120,000</div></div></div>
+              <div class="payment-row" style="border-top:0.5px solid #eae9e2"><div class="payment-label" style="font-weight:700">小計</div><div><div class="payment-val">¥360,000</div></div></div>
+              <div class="payment-row"><div class="payment-label">消費税（10%）</div><div><div class="payment-val">¥36,000</div></div></div>
+              <div class="payment-row" style="background:#f8f8f6"><div class="payment-label" style="font-weight:700;font-size:13px">合計（税込）</div><div><div class="payment-val" style="font-size:16px;color:var(--blue)">¥396,000</div></div></div>
+            </div>
+            <div class="card-title">過去の請求履歴</div>
+            <div class="info-section">
+              <div class="info-row"><div class="info-key">2026/03</div><div class="info-val">¥312,000 <span style="font-size:9px;color:var(--teal)">着金済</span></div></div>
+              <div class="info-row"><div class="info-key">2026/02</div><div class="info-val">¥280,000 <span style="font-size:9px;color:var(--teal)">着金済</span></div></div>
+              <div class="info-row"><div class="info-key">2026/01</div><div class="info-val">¥195,000 <span style="font-size:9px;color:var(--teal)">着金済</span></div></div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])"><div class="bn-ic">👤</div><div class="bn-lb">在籍</div></div>
+            <div class="bn-item"><div class="bn-ic">💰</div><div class="bn-lb act" style="color:#854F0B">請求</div><div class="bn-dot" style="background:#854F0B"></div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMER LEAVE -->
+        <div class="sscreen" id="customer-leave">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('customer','detail',document.querySelectorAll('#role-customer .stab')[2])">←</button>
+            <div class="tb-title">退店申請</div>
+          </div>
+          <div class="sbody">
+            <div class="leave-step">
+              <div class="leave-step-title">退店申請について</div>
+              <div class="leave-step-body">退店申請後、担当スカウトが確認の上、在籍終了処理を行います。月途中の退店は日割り計算となります。</div>
+            </div>
+            <div><div class="flabel">対象キャスト</div><div class="frow"><span class="fval">さくら</span></div></div>
+            <div><div class="flabel">退店予定日 *</div><div class="frow" onclick="pickDate(this)"><span class="fph">日付を選択</span></div></div>
+            <div>
+              <div class="flabel">退店理由 *</div>
+              <div class="chips" id="leave-chips" style="margin-top:5px">
+                <button class="chip" onclick="selChip(this,'leave-chips','var(--red-lt)','var(--red)','#F09595')">本人都合</button>
+                <button class="chip" onclick="selChip(this,'leave-chips','var(--red-lt)','var(--red)','#F09595')">店舗都合</button>
+                <button class="chip" onclick="selChip(this,'leave-chips','var(--red-lt)','var(--red)','#F09595')">閉店</button>
+                <button class="chip" onclick="selChip(this,'leave-chips','var(--red-lt)','var(--red)','#F09595')">その他</button>
+              </div>
+            </div>
+            <div><div class="flabel">備考</div><textarea class="memo" placeholder="詳細があればご記入ください"></textarea></div>
+            <button class="savebtn" style="background:var(--red);color:#fff" onclick="doSave(this,'customer','home')">退店申請を送信</button>
+            <div style="height:6px"></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMER NOTIF -->
+        <div class="sscreen" id="customer-notif">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar"><div class="tb-title">通知</div></div>
+          <div class="sbody-np">
+            <div class="info-section" style="margin:14px">
+              <div class="notif-item unread">
+                <div class="notif-icon" style="background:var(--teal-lt)">💰</div>
+                <div class="notif-body">
+                  <div class="notif-title">4月分請求書が発行されました</div>
+                  <div class="notif-desc">¥396,000（税込）· 着金確認済み</div>
+                  <div class="notif-time">4/2 10:00</div>
+                </div>
+                <div class="unread-dot"></div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--teal-lt)">👤</div>
+                <div class="notif-body">
+                  <div class="notif-title">新しいキャストが入店しました</div>
+                  <div class="notif-desc">みな（在籍料）が入店しました。</div>
+                  <div class="notif-time">4/8 15:00</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--amber-lt)">📋</div>
+                <div class="notif-body">
+                  <div class="notif-title">3月分請求書が発行されました</div>
+                  <div class="notif-desc">¥312,000（税込）</div>
+                  <div class="notif-time">3/2 10:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('customer','home',document.querySelectorAll('#role-customer .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','cast',document.querySelectorAll('#role-customer .stab')[1])"><div class="bn-ic">👤</div><div class="bn-lb">在籍</div></div>
+            <div class="bn-item" onclick="switchScreen('customer','billing',document.querySelectorAll('#role-customer .stab')[3])"><div class="bn-ic">💰</div><div class="bn-lb">請求</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb act" style="color:#854F0B">通知</div><div class="bn-dot" style="background:#854F0B"></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- ==============================
+     ROLE: AGENCY（業者）
+============================== -->
+<div class="role-panel" id="role-agency">
+  <div class="screen-tabs">
+    <button class="stab agency-tab on" onclick="switchScreen('agency','home',this)">マイページ</button>
+    <button class="stab agency-tab"    onclick="switchScreen('agency','cast',this)">紹介実績</button>
+    <button class="stab agency-tab"    onclick="switchScreen('agency','payment',this)">支払明細</button>
+    <button class="stab agency-tab"    onclick="switchScreen('agency','notif',this)">通知</button>
+  </div>
+  <div class="phones">
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="notch-bar"><div class="notch-cam"></div></div>
+      <div class="screen">
+
+        <!-- AGENCY HOME -->
+        <div class="sscreen on" id="agency-home">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="hero-agency">
+            <div class="hero-greeting">A社</div>
+            <div class="hero-name">田中さん</div>
+            <div class="hero-sub">紹介会社ポータル</div>
+          </div>
+          <div class="sbody">
+            <div class="mini-metrics">
+              <div class="mini-mc"><div class="mini-mc-label">今月の紹介数</div><div class="mini-mc-val">12</div><div class="mini-mc-sub">先月比 +2</div></div>
+              <div class="mini-mc"><div class="mini-mc-label">今月の入店数</div><div class="mini-mc-val">4</div><div class="mini-mc-sub">採用率 33%</div></div>
+            </div>
+            <div class="billing-hero" style="margin-top:0">
+              <div class="billing-label">4月分 支払予定額</div>
+              <div class="billing-amount">¥360,000</div>
+              <div class="billing-status" style="background:var(--amber-lt);color:var(--amber)">送金待ち</div>
+            </div>
+            <div>
+              <div class="sect-hd"><div class="sect-t">在籍中キャスト（紹介分）</div><div class="sect-more" onclick="switchScreen('agency','cast',document.querySelectorAll('#role-agency .stab')[1])">一覧へ</div></div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="cast-row">
+                  <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">さ</div>
+                  <div class="cast-info"><div class="cast-nm">さくら（高橋さくら）</div><div class="cast-sb">北新地 キャバクラA · 2026/01/15入店 · 永久</div></div>
+                  <span class="badge s-zaiseki">在籍</span>
+                </div>
+                <div class="cast-row">
+                  <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">あ</div>
+                  <div class="cast-info"><div class="cast-nm">あい（鈴木あい）</div><div class="cast-sb">神戸 キャバクラA · 2026/03/01入店 · 永久</div></div>
+                  <span class="badge s-zaiseki">在籍</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item"><div class="bn-ic">⊞</div><div class="bn-lb act" style="color:var(--teal)">ホーム</div><div class="bn-dot" style="background:var(--teal)"></div></div>
+            <div class="bn-item" onclick="switchScreen('agency','cast',document.querySelectorAll('#role-agency .stab')[1])"><div class="bn-ic">📋</div><div class="bn-lb">実績</div></div>
+            <div class="bn-item" onclick="switchScreen('agency','payment',document.querySelectorAll('#role-agency .stab')[2])"><div class="bn-ic">💴</div><div class="bn-lb">支払</div></div>
+            <div class="bn-item" onclick="switchScreen('agency','notif',document.querySelectorAll('#role-agency .stab')[3])"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- AGENCY CAST -->
+        <div class="sscreen" id="agency-cast">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('agency','home',document.querySelectorAll('#role-agency .stab')[0])">←</button>
+            <div class="tb-title">紹介実績</div>
+          </div>
+          <div class="sbody-np">
+            <div class="filter-row">
+              <button class="chip" style="background:var(--teal-lt);color:var(--teal);border-color:var(--teal-md)" onclick="fchip(this)">すべて</button>
+              <button class="chip" onclick="fchip(this)">在籍中</button>
+              <button class="chip" onclick="fchip(this)">体験中</button>
+              <button class="chip" onclick="fchip(this)">退店</button>
+            </div>
+            <div style="padding:0 14px;display:flex;flex-direction:column;gap:7px;padding-bottom:16px">
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">さ</div>
+                <div class="cast-info"><div class="cast-nm">さくら（高橋さくら）</div><div class="cast-sb">北新地 キャバクラA · 入店 1/15 · 永久</div></div>
+                <span class="badge s-zaiseki">在籍</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--teal-lt);color:var(--teal)">あ</div>
+                <div class="cast-info"><div class="cast-nm">あい（鈴木あい）</div><div class="cast-sb">神戸 キャバクラA · 入店 3/1 · 永久</div></div>
+                <span class="badge s-zaiseki">在籍</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--purple-lt);color:var(--purple-dk)">ゆ</div>
+                <div class="cast-info"><div class="cast-nm">ゆいな（田中凛）</div><div class="cast-sb">北新地 キャバクラB · 体験中</div></div>
+                <span class="badge s-taiken">体験</span>
+              </div>
+              <div class="cast-row">
+                <div class="avatar" style="background:var(--gray-lt);color:var(--gray-dk)">ひ</div>
+                <div class="cast-info"><div class="cast-nm">ひかり（山田えり）</div><div class="cast-sb">梅田 ラウンジC · 退店 3/31</div></div>
+                <span class="badge s-risuke">退店</span>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('agency','home',document.querySelectorAll('#role-agency .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item"><div class="bn-ic">📋</div><div class="bn-lb act" style="color:var(--teal)">実績</div><div class="bn-dot" style="background:var(--teal)"></div></div>
+            <div class="bn-item" onclick="switchScreen('agency','payment',document.querySelectorAll('#role-agency .stab')[2])"><div class="bn-ic">💴</div><div class="bn-lb">支払</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- AGENCY PAYMENT -->
+        <div class="sscreen" id="agency-payment">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar">
+            <button class="tb-back" onclick="switchScreen('agency','home',document.querySelectorAll('#role-agency .stab')[0])">←</button>
+            <div class="tb-title">支払明細</div>
+          </div>
+          <div class="sbody">
+            <div class="billing-hero">
+              <div class="billing-label">2026年4月分 支払予定</div>
+              <div class="billing-amount">¥360,000</div>
+              <div class="billing-status" style="background:var(--amber-lt);color:var(--amber)">送金待ち ⏳</div>
+            </div>
+            <div class="info-section">
+              <div class="payment-row"><div class="payment-label">さくら（永久）· キャバクラA</div><div><div class="payment-val">¥120,000</div><div class="payment-sub">出勤 40日 × ¥3,000</div></div></div>
+              <div class="payment-row"><div class="payment-label">あい（永久）· キャバクラA</div><div><div class="payment-val">¥90,000</div><div class="payment-sub">出勤 30日 × ¥3,000</div></div></div>
+              <div class="payment-row"><div class="payment-label">ゆいな（入店料）· キャバクラB</div><div><div class="payment-val">¥60,000</div><div class="payment-sub">入店一時金</div></div></div>
+              <div class="payment-row" style="background:#f8f8f6"><div class="payment-label" style="font-weight:700">合計</div><div><div class="payment-val" style="color:var(--teal)">¥360,000</div></div></div>
+            </div>
+            <div class="card-title">過去の支払履歴</div>
+            <div class="info-section">
+              <div class="timeline-item">
+                <div class="tl-left"><div class="tl-dot" style="background:var(--teal)"></div><div class="tl-line"></div></div>
+                <div class="tl-body">
+                  <div class="tl-title">3月分 ¥280,000 振込済み</div>
+                  <div class="tl-sub">口座：〇〇銀行 普通 1234567</div>
+                  <div class="tl-date">2026/03/25</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="tl-left"><div class="tl-dot" style="background:var(--teal)"></div></div>
+                <div class="tl-body">
+                  <div class="tl-title">2月分 ¥210,000 振込済み</div>
+                  <div class="tl-date">2026/02/25</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('agency','home',document.querySelectorAll('#role-agency .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('agency','cast',document.querySelectorAll('#role-agency .stab')[1])"><div class="bn-ic">📋</div><div class="bn-lb">実績</div></div>
+            <div class="bn-item"><div class="bn-ic">💴</div><div class="bn-lb act" style="color:var(--teal)">支払</div><div class="bn-dot" style="background:var(--teal)"></div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb">通知</div></div>
+          </div>
+        </div>
+
+        <!-- AGENCY NOTIF -->
+        <div class="sscreen" id="agency-notif">
+          <div class="statusbar"><span>9:41</span><span>100%</span></div>
+          <div class="topbar"><div class="tb-title">通知</div></div>
+          <div class="sbody-np">
+            <div class="info-section" style="margin:14px">
+              <div class="notif-item unread">
+                <div class="notif-icon" style="background:var(--teal-lt)">💴</div>
+                <div class="notif-body">
+                  <div class="notif-title">4月分支払明細が届きました</div>
+                  <div class="notif-desc">¥360,000 · 送金予定日 4/25</div>
+                  <div class="notif-time">4/10 10:00</div>
+                </div>
+                <div class="unread-dot"></div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--teal-lt)">✅</div>
+                <div class="notif-body">
+                  <div class="notif-title">入店確定 — ゆいな（田中凛）</div>
+                  <div class="notif-desc">北新地 キャバクラBへの入店が確定しました。</div>
+                  <div class="notif-time">4/8 16:00</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-icon" style="background:var(--teal-lt)">💴</div>
+                <div class="notif-body">
+                  <div class="notif-title">3月分 ¥280,000 振込完了</div>
+                  <div class="notif-desc">〇〇銀行への振込が完了しました。</div>
+                  <div class="notif-time">3/25 14:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bnav">
+            <div class="bn-item" onclick="switchScreen('agency','home',document.querySelectorAll('#role-agency .stab')[0])"><div class="bn-ic">⊞</div><div class="bn-lb">ホーム</div></div>
+            <div class="bn-item" onclick="switchScreen('agency','cast',document.querySelectorAll('#role-agency .stab')[1])"><div class="bn-ic">📋</div><div class="bn-lb">実績</div></div>
+            <div class="bn-item" onclick="switchScreen('agency','payment',document.querySelectorAll('#role-agency .stab')[2])"><div class="bn-ic">💴</div><div class="bn-lb">支払</div></div>
+            <div class="bn-item"><div class="bn-ic">🔔</div><div class="bn-lb act" style="color:var(--teal)">通知</div><div class="bn-dot" style="background:var(--teal)"></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<script>
+// ===== ROLE SWITCH =====
+function switchRole(role, el) {
+  document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('role-' + role).classList.add('on');
+  el.classList.add('on');
+}
+
+// ===== SCREEN SWITCH =====
+function switchScreen(role, screen, tabEl) {
+  const panel = document.getElementById('role-' + role);
+  panel.querySelectorAll('.sscreen').forEach(s => s.classList.remove('on'));
+  const target = document.getElementById(role + '-' + screen);
+  if (target) target.classList.add('on');
+  panel.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
+  if (tabEl) tabEl.classList.add('on');
+}
+
+// ===== HELPERS =====
+function cycleV(el, vals) {
+  const sp = el.querySelector('span.fval');
+  const cur = sp.textContent;
+  const i = (vals.indexOf(cur) + 1) % vals.length;
+  sp.textContent = vals[i];
+}
+
+function selChip(btn, groupId, bg, color, border) {
+  const group = document.getElementById(groupId) || btn.closest('.chips');
+  group.querySelectorAll('.chip').forEach(c => {
+    c.style.background = ''; c.style.color = ''; c.style.borderColor = '';
+  });
+  btn.style.background = bg;
+  btn.style.color = color;
+  btn.style.borderColor = border;
+}
+
+function fchip(btn) {
+  btn.closest('.filter-row').querySelectorAll('.chip').forEach(c => {
+    c.style.background = ''; c.style.color = ''; c.style.borderColor = '';
+  });
+  btn.style.background = 'var(--blue-lt)';
+  btn.style.color = 'var(--blue-dk)';
+  btn.style.borderColor = 'var(--blue-md)';
+}
+
+const dates = ['4/10','4/11','4/14','4/15','4/17','4/20'];
+let di = 0;
+function pickDate(el) {
+  const sp = el.querySelector('span');
+  sp.className = 'fval'; sp.textContent = dates[di++ % dates.length];
+}
+
+function doSave(btn, role, nextScreen) {
+  const orig = btn.textContent;
+  btn.textContent = '送信しました ✓';
+  btn.style.background = 'var(--teal)';
+  setTimeout(() => {
+    btn.textContent = orig;
+    btn.style.background = '';
+    const tabs = document.querySelectorAll('#role-' + role + ' .stab');
+    const screenMap = {home:0,list:1,reg:2,detail:3,edit:4,notif:5,cast:1,billing:3,leave:4,payment:2};
+    const idx = screenMap[nextScreen] ?? 0;
+    switchScreen(role, nextScreen, tabs[idx]);
+  }, 1200);
+}
+</script>
+</body>
+</html>
