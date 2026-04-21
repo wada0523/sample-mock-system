@@ -2,726 +2,963 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>画面遷移図 + 管理画面モック</title>
+<title>キャスト管理システム — LTV分析</title>
 <style>
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#1C2128;--bg4:#21262D;
+  --border:#30363D;--border2:#484F58;
+  --blue:#388BFD;--blue-bg:rgba(56,139,253,.1);
+  --teal:#3FB950;--teal-bg:rgba(63,185,80,.1);
+  --amber:#D29922;--amber-bg:rgba(210,153,34,.1);
+  --red:#F85149;--red-bg:rgba(248,81,73,.1);
+  --purple:#BC8CFF;
+  --text:#E6EDF3;--text2:#8B949E;--text3:#484F58;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;font-size:13px;line-height:1.6;min-height:100vh}
+.shell{display:flex;height:100vh;overflow:hidden}
 
-/* ===== NAV ===== */
-.top-nav{display:flex;gap:0;background:#fff;border-bottom:1px solid #e8e8e4;padding:0 24px;position:sticky;top:0;z-index:100}
-.tab{padding:14px 20px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
-.tab.on{color:#185FA5;border-bottom-color:#185FA5}
+/* sidebar */
+.sb{width:212px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-brand{padding:15px 14px;border-bottom:1px solid var(--border)}
+.sb-brand .name{font-size:13px;font-weight:700;color:var(--text)}
+.sb-brand .sub{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:.08em}
+.sb-sec{padding:13px 12px 3px;font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 12px;margin:1px 5px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:12px;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.on{background:var(--blue-bg);color:var(--blue);font-weight:500}
+.sb-ic{font-size:13px;width:15px;text-align:center;flex-shrink:0}
+.sb-tag{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:600}
+.tag-mvp{background:var(--blue-bg);color:var(--blue)}
+.tag-ph2{background:var(--teal-bg);color:var(--teal);opacity:.55}
+.sb-dim{opacity:.3;pointer-events:none}/* unused */
 
-.page{display:none;padding:24px}
-.page.on{display:block}
+/* main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:50px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0}
+.tb-title{font-size:14px;font-weight:600}
+.tb-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(56,139,253,.25);font-weight:600}
+.tb-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+select{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit}
+.btn{font-size:11px;padding:4px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.btn:hover{color:var(--text);background:var(--bg4)}
 
-/* ===== TRANSITION DIAGRAM ===== */
-.diagram-wrap{background:#fff;border-radius:12px;border:0.5px solid #e8e8e4;padding:24px;overflow-x:auto}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;font-size:12px;color:#666;align-items:center}
-.leg{display:flex;align-items:center;gap:6px}
-.leg-sq{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.body{flex:1;overflow-y:auto;padding:18px 20px}
+.sub{display:none}.sub.on{display:block}
 
-/* ===== ADMIN DASHBOARD ===== */
-.admin-wrap{display:flex;height:calc(100vh - 100px);min-height:600px;background:#fff;border-radius:12px;border:0.5px solid #e8e8e4;overflow:hidden}
-.sidebar{width:200px;flex-shrink:0;background:#0f1923;display:flex;flex-direction:column;padding:0}
-.sb-logo{padding:20px 16px 16px;color:#fff;font-size:15px;font-weight:500;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-logo span{font-size:10px;display:block;color:rgba(255,255,255,.4);margin-top:2px;font-weight:400}
-.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;transition:all .15s}
-.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
-.sb-item.on{background:rgba(24,95,165,.3);color:#fff}
-.sb-ic{width:16px;text-align:center;flex-shrink:0;font-size:14px}
-.sb-section{padding:12px 16px 4px;font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.08em}
-.sb-badge{margin-left:auto;background:#E24B4A;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px}
+/* month nav */
+.month-nav{display:flex;align-items:center;gap:6px;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+.mn-label{font-size:11px;color:var(--text2);font-weight:500;margin-right:4px}
+.mn-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .12s;font-family:inherit}
+.mn-btn:hover{background:var(--bg3);color:var(--text)}
+.mn-btn.on{background:var(--blue-bg);color:var(--blue);border-color:rgba(56,139,253,.3);font-weight:600}
+.mn-arrow{font-size:16px;color:var(--text2);cursor:pointer;padding:2px 6px;border-radius:4px;border:none;background:transparent}
+.mn-arrow:hover{color:var(--text)}
+.mn-current{font-size:13px;font-weight:600;color:var(--text);min-width:72px;text-align:center}
 
-.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.main-header{padding:16px 24px;border-bottom:0.5px solid #e8e8e4;display:flex;align-items:center;justify-content:space-between;background:#fff;flex-shrink:0}
-.main-title{font-size:16px;font-weight:500}
-.header-actions{display:flex;gap:8px;align-items:center}
-.btn-sm{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid #ddd;background:#fff;cursor:pointer;color:#444;white-space:nowrap}
-.btn-sm.primary{background:#185FA5;color:#fff;border-color:#185FA5}
+/* formula */
+.fml{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.fml .eq{font-size:12px;font-weight:600;color:var(--text)}
+.fc{font-size:11px;font-weight:600;padding:3px 10px;border-radius:16px}
+.fc.b{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(56,139,253,.25)}
+.fc.t{background:var(--teal-bg);color:var(--teal);border:1px solid rgba(63,185,80,.25)}
+.fc.a{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(210,153,34,.25)}
+.fop{color:var(--text3);font-size:14px;font-weight:700}
 
-.main-body{flex:1;overflow-y:auto;padding:20px 24px;background:#f8f8f6}
-.sub-page{display:none}
-.sub-page.on{display:block}
+/* kpi row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;transition:border-color .2s}
+.kpi.updated{border-color:var(--blue);animation:flash .4s}
+@keyframes flash{0%{background:var(--blue-bg)}100%{background:var(--bg2)}}
+.kpi-lb{font-size:10px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.kpi-v{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.kpi-v.b{color:var(--blue)}.kpi-v.t{color:var(--teal)}.kpi-v.a{color:var(--amber)}.kpi-v.r{color:var(--red)}
+.kpi-s{font-size:10px;color:var(--text2);margin-top:3px}
+.kpi-diff{font-size:10px;margin-top:2px;font-weight:500}
+.kpi-diff.up{color:var(--teal)}.kpi-diff.dn{color:var(--red)}
 
-/* metric cards */
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.mc{background:#fff;border-radius:10px;padding:16px;border:0.5px solid #e8e8e4}
-.mc-label{font-size:11px;color:#888;margin-bottom:6px}
-.mc-val{font-size:28px;font-weight:500;color:#1a1a1a}
-.mc-sub{font-size:11px;color:#aaa;margin-top:4px}
-.mc-bar{height:3px;background:#e8e8e4;border-radius:2px;margin-top:8px}
-.mc-fill{height:100%;border-radius:2px}
-.mc.warn .mc-val{color:#A32D2D}
-.mc.good .mc-val{color:#0F6E56}
-
-/* charts row */
-.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:20px}
-.card{background:#fff;border-radius:10px;border:0.5px solid #e8e8e4;padding:16px}
-.card-title{font-size:13px;font-weight:500;margin-bottom:14px;color:#1a1a1a}
-
-/* bar chart */
-.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px}
-.bar-group{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
-.bars{display:flex;gap:2px;align-items:flex-end;height:100px}
-.bar{width:14px;border-radius:2px 2px 0 0;cursor:pointer;transition:opacity .15s}
-.bar:hover{opacity:.75}
-.bar-lbl{font-size:10px;color:#aaa}
-
-/* donut */
-.donut-wrap{display:flex;align-items:center;gap:16px}
-.donut-legend{display:flex;flex-direction:column;gap:8px}
-.dl-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#444}
-.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* card */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden}
+.card-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-hd .ct{font-size:12px;font-weight:600}
+.card-hd .cs{font-size:10px;color:var(--text2);margin-left:auto}
 
 /* table */
-.data-table{width:100%;border-collapse:collapse;font-size:12px}
-.data-table th{background:#f8f8f6;padding:8px 12px;text-align:left;font-weight:500;color:#888;border-bottom:0.5px solid #e8e8e4;font-size:11px;white-space:nowrap}
-.data-table td{padding:10px 12px;border-bottom:0.5px solid #f1efe8;color:#1a1a1a;vertical-align:middle}
-.data-table tr:last-child td{border-bottom:none}
-.data-table tr:hover td{background:#fafaf8}
-.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.act-link{color:#185FA5;cursor:pointer;font-size:11px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{padding:7px 11px;text-align:left;font-size:9.5px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);letter-spacing:.04em;text-transform:uppercase;background:var(--bg3);white-space:nowrap}
+.tbl td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg3)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:var(--teal);font-weight:600}
+.warn{color:var(--amber);font-weight:600}
+.bad{color:var(--red);font-weight:600}
 
-/* alert list */
-.alert-list{display:flex;flex-direction:column;gap:8px}
-.alert-item{display:flex;gap:10px;padding:10px 12px;border-radius:8px;background:#fff;border:0.5px solid #e8e8e4;align-items:flex-start}
-.alert-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.alert-body{flex:1}
-.alert-t{font-size:12px;font-weight:500;color:#1a1a1a}
-.alert-d{font-size:11px;color:#888;margin-top:2px}
-.alert-time{font-size:10px;color:#aaa;flex-shrink:0}
+/* rank */
+.rk{display:inline-flex;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.r1{background:#FFD700;color:#3a2a00}.r2{background:#8D9198;color:#fff}.r3{background:#CD7F32;color:#fff}.rn{background:var(--bg4);color:var(--text2)}
 
-/* filter bar */
-.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.filter-chip{font-size:11px;padding:4px 12px;border-radius:20px;border:0.5px solid #ddd;background:#fff;color:#666;cursor:pointer}
-.filter-chip.on{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
-.search-input{flex:1;max-width:240px;padding:6px 12px;border-radius:8px;border:0.5px solid #ddd;background:#fff;font-size:12px;color:#1a1a1a}
+/* type */
+.tp{display:inline-block;font-size:9.5px;padding:2px 7px;border-radius:8px;font-weight:600;border:1px solid}
+.tp1{background:var(--blue-bg);color:var(--blue);border-color:rgba(56,139,253,.3)}
+.tp2{background:var(--teal-bg);color:var(--teal);border-color:rgba(63,185,80,.3)}
+.tp3{background:var(--amber-bg);color:var(--amber);border-color:rgba(210,153,34,.3)}
+.tp-sel{font-size:10px;padding:2px 5px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit}
 
-/* status colors */
-.s-zaiseki{background:#E1F5EE;color:#085041}
-.s-taiken{background:#EEEDFE;color:#3C3489}
-.s-mensetsu{background:#FAEEDA;color:#633806}
-.s-funakunin{background:#FCEBEB;color:#791F1F}
-.s-risuke{background:#F1EFE8;color:#5F5E5A}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-/* progress */
-.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.prog-name{width:60px;font-size:11px;color:#666;flex-shrink:0}
-.prog-bar{flex:1;height:6px;background:#e8e8e4;border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px}
-.prog-val{width:32px;font-size:11px;color:#444;text-align:right;flex-shrink:0}
+/* hbar */
+.hbar-wrap{padding:13px 15px}
+.hb-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.hb-lb{width:110px;font-size:11px;color:var(--text2);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-track{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.hb-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.hb-val{font-size:11px;width:68px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
 
-/* two col layout */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+/* matrix */
+.matrix-wrap{padding:14px}
+.matrix-note{font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.6;background:var(--bg3);border-radius:5px;padding:7px 10px}
+.matrix-grid{display:grid;grid-template-columns:auto 1fr 1fr;gap:2px}
+.mx-corner{width:60px}
+.mx-header{background:var(--bg3);border-radius:4px;padding:6px 8px;text-align:center;font-size:10px;font-weight:600;color:var(--text2)}
+.mx-row-label{display:flex;align-items:center;justify-content:flex-end;font-size:10px;color:var(--text2);font-weight:600;padding-right:8px;text-align:right;line-height:1.4}
+.mx-cell{background:var(--bg3);border-radius:4px;padding:10px 8px;min-height:80px;display:flex;flex-direction:column;gap:5px}
+.mx-cell.hot{background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.15)}
+.mx-cell.warm{background:rgba(63,185,80,.04);border:1px solid rgba(63,185,80,.1)}
+.mx-cell.cold{background:rgba(248,81,73,.04);border:1px solid rgba(248,81,73,.1)}
+.mx-cell.neutral{border:1px solid var(--border)}
+.mx-shop{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:5px;background:var(--bg4);font-size:10px;cursor:default;transition:background .12s}
+.mx-shop:hover{background:var(--bg2)}
+.mx-shop .sn{font-weight:600;color:var(--text);flex:1}
+.mx-shop .sv{font-size:9.5px;font-variant-numeric:tabular-nums}
+.mx-badge{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
-/* billing table */
-.billing-total{background:#F1EFE8;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.bt-label{font-size:12px;color:#666}
-.bt-val{font-size:20px;font-weight:500;color:#1a1a1a}
+/* scout card */
+.sc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:15px;transition:border-color .2s}
+.sc.hl{border-color:var(--blue);box-shadow:0 0 0 1px rgba(56,139,253,.15)}
+.sc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.sc-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.sc-name{font-size:13px;font-weight:700}
+.sc-sub{margin-top:3px}
+.sc-right{margin-left:auto;text-align:right;flex-shrink:0}
+.sc-inv-lb{font-size:9px;color:var(--text2)}
+.sc-inv-v{font-size:14px;font-weight:700}
+.sc-ms{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.sc-m{background:var(--bg3);border-radius:5px;padding:7px 5px;text-align:center;transition:background .2s}
+.sc-m.updated{background:rgba(56,139,253,.1);animation:flash .4s}
+.sc-m-lb{font-size:9px;color:var(--text2);margin-bottom:2px}
+.sc-m-v{font-size:13px;font-weight:700}
+.sc-ltv{background:var(--bg3);border-radius:5px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center}
+.sc-ltv-lb{font-size:9px;color:var(--text2)}
+.sc-ltv-sub{font-size:9px;color:var(--text3)}
+.sc-ltv-v{font-size:14px;font-weight:700}
+.sc-prog{margin-top:7px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.sc-prog-fill{height:100%;border-radius:2px;transition:width .4s ease}
 
-/* status step indicator */
-.status-flow{display:flex;align-items:center;gap:0;margin-bottom:16px}
-.sf-step{display:flex;flex-direction:column;align-items:center;gap:4px}
-.sf-dot{width:28px;height:28px;border-radius:50%;border:2px solid #ddd;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa}
-.sf-dot.done{background:#185FA5;border-color:#185FA5;color:#fff}
-.sf-dot.current{border-color:#185FA5;color:#185FA5}
-.sf-label{font-size:10px;color:#aaa;white-space:nowrap}
-.sf-label.done,.sf-label.current{color:#185FA5}
-.sf-line{width:30px;height:2px;background:#e8e8e4;margin-bottom:14px}
-.sf-line.done{background:#185FA5}
+.note{background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--blue);border-radius:0 6px 6px 0;padding:9px 13px;margin-bottom:14px;font-size:11px;color:var(--text2);line-height:1.7}
+.note.t{border-left-color:var(--teal)}
+
+
+/* date range */
+.dr-wrap{display:flex;align-items:center;gap:6px}
+.dr-label{font-size:11px;color:var(--text2)}
+.dr-input{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;color-scheme:dark}
+.dr-input:focus{outline:none;border-color:var(--blue)}
+.dr-sep{font-size:11px;color:var(--text3)}
+.dr-apply{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap}
+.dr-apply:hover{background:var(--blue);color:#fff}
+.dr-clear{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit}
+.dr-clear:hover{color:var(--text);background:var(--bg3)}
+
+
+/* ph2 pages */
+.ph2-banner{display:flex;align-items:flex-start;gap:14px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:16px;margin-bottom:16px}
+.ph2-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.ph2-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.ph2-desc{font-size:11px;color:var(--text2);line-height:1.7}
+.ph2-feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.ph2-feat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.ph2-feat-ic{font-size:20px;margin-bottom:6px}
+.ph2-feat-t{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ph2-feat-d{font-size:11px;color:var(--text2);line-height:1.6}
+.ph2-mockup{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ph2-mockup-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2)}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
 </head>
 <body>
+<div class="shell">
 
-<div class="top-nav">
-  <div class="tab on" onclick="showPage('transition',this)">画面遷移図</div>
-  <div class="tab" onclick="showPage('dashboard',this)">ダッシュボード</div>
-  <div class="tab" onclick="showPage('cast',this)">キャスト管理</div>
-  <div class="tab" onclick="showPage('revenue',this)">売上・請求</div>
-  <div class="tab" onclick="showPage('payment',this)">業者支払</div>
-  <div class="tab" onclick="showPage('kpi',this)">KPI分析</div>
-</div>
-
-<!-- ============================
-     PAGE: 遷移図
-============================= -->
-<div class="page on" id="page-transition">
-<div class="diagram-wrap">
-  <div class="legend">
-    <div class="leg"><div class="leg-sq" style="background:#E6F1FB;border:1px solid #85B7EB"></div>スカウト（Flutter）</div>
-    <div class="leg"><div class="leg-sq" style="background:#E1F5EE;border:1px solid #5DCAA5"></div>管理者（Web）</div>
-    <div class="leg"><div class="leg-sq" style="background:#FAEEDA;border:1px solid #EF9F27"></div>顧客・業者（Flutter）</div>
-    <div class="leg"><div class="leg-sq" style="background:#F1EFE8;border:1px solid #B4B2A9"></div>共通</div>
-    <div style="margin-left:auto;font-size:11px;color:#aaa">→ 通常遷移　- - → 通知・連携</div>
+<!-- SIDEBAR -->
+<div class="sb">
+  <div class="sb-brand">
+    <div class="name">キャスト管理システム</div>
+    <div class="sub">CAST MANAGEMENT SYSTEM</div>
   </div>
-
-  <svg viewBox="0 0 960 1080" width="100%" style="min-width:700px">
-  <defs>
-    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </marker>
-  </defs>
-
-  <!-- HEADERS -->
-  <rect x="40" y="10" width="220" height="30" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="25" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">スカウト（Flutter）</text>
-
-  <rect x="370" y="10" width="220" height="30" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="25" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">管理者（Web）</text>
-
-  <rect x="700" y="10" width="220" height="30" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="25" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">顧客・業者（Flutter）</text>
-
-  <!-- COLUMN GUIDES -->
-  <line x1="150" y1="40" x2="150" y2="1060" stroke="#e8e8e4" stroke-width="0.5" stroke-dasharray="3 4"/>
-  <line x1="480" y1="40" x2="480" y2="1060" stroke="#e8e8e4" stroke-width="0.5" stroke-dasharray="3 4"/>
-  <line x1="810" y1="40" x2="810" y2="1060" stroke="#e8e8e4" stroke-width="0.5" stroke-dasharray="3 4"/>
-
-  <!-- ROW: LOGIN -->
-  <rect x="50" y="55" width="200" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="150" y="73" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">ログイン</text>
-  <rect x="380" y="55" width="200" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="480" y="73" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">ログイン</text>
-  <rect x="710" y="55" width="200" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="810" y="73" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">ログイン（招待制）</text>
-
-  <line x1="150" y1="91" x2="150" y2="118" stroke="#888" stroke-width="0.5" marker-end="url(#ar)"/>
-  <line x1="480" y1="91" x2="480" y2="118" stroke="#888" stroke-width="0.5" marker-end="url(#ar)"/>
-  <line x1="810" y1="91" x2="810" y2="118" stroke="#888" stroke-width="0.5" marker-end="url(#ar)"/>
-
-  <!-- ROW: TOP -->
-  <rect x="50" y="120" width="200" height="48" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="138" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">ホーム</text>
-  <text x="150" y="156" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">KPI・予定・後追いアラート</text>
-
-  <rect x="380" y="120" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="138" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">ダッシュボード</text>
-  <text x="480" y="156" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">全体KPI・売上・アラート</text>
-
-  <rect x="710" y="120" width="200" height="48" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="138" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">マイページ</text>
-  <text x="810" y="156" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">在籍状況・請求確認</text>
-
-  <!-- SCOUT screens -->
-  <line x1="150" y1="168" x2="150" y2="200" stroke="#378ADD" stroke-width="0.5" marker-end="url(#ar)"/>
-
-  <rect x="50" y="202" width="200" height="48" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="220" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">キャスト一覧</text>
-  <text x="150" y="238" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">検索・フィルタ・ソート</text>
-
-  <line x1="150" y1="250" x2="150" y2="282" stroke="#378ADD" stroke-width="0.5" marker-end="url(#ar)"/>
-
-  <rect x="50" y="284" width="200" height="48" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="302" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">キャスト詳細</text>
-  <text x="150" y="320" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">情報・ステータス履歴</text>
-
-  <line x1="150" y1="332" x2="150" y2="364" stroke="#378ADD" stroke-width="0.5" marker-end="url(#ar)"/>
-  <text x="160" y="350" font-size="10" fill="#185FA5">編集ボタン</text>
-
-  <rect x="50" y="366" width="200" height="36" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="384" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#0C447C">キャスト編集</text>
-
-  <rect x="50" y="432" width="200" height="36" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="450" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#0C447C">キャスト新規登録</text>
-  <path d="M150 168 L20 168 L20 450 L50 450" fill="none" stroke="#378ADD" stroke-width="0.5" marker-end="url(#ar)"/>
-  <text x="28" y="315" font-size="10" fill="#185FA5">+ ボタン</text>
-
-  <rect x="50" y="498" width="200" height="48" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="516" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">ステータス変更</text>
-  <text x="150" y="534" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">面接→体験→入店 など</text>
-  <line x1="150" y1="402" x2="150" y2="496" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="3 2" marker-end="url(#ar)"/>
-
-  <rect x="50" y="576" width="200" height="48" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="594" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">通知一覧</text>
-  <text x="150" y="612" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#185FA5">後追い・面接リマインド</text>
-  <line x1="150" y1="546" x2="150" y2="574" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="160" y="562" font-size="10" fill="#185FA5">Push通知</text>
-
-  <rect x="50" y="654" width="200" height="36" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
-  <text x="150" y="672" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#0C447C">KPI（自分）</text>
-  <path d="M150 168 L280 168 L280 672 L250 672" fill="none" stroke="#378ADD" stroke-width="0.5" marker-end="url(#ar)"/>
-  <text x="285" y="418" font-size="10" fill="#185FA5">KPIタブ</text>
-
-  <!-- ADMIN screens -->
-  <line x1="480" y1="168" x2="480" y2="200" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-
-  <rect x="380" y="202" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="220" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">キャスト管理</text>
-  <text x="480" y="238" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">全担当者データ一覧</text>
-
-  <line x1="480" y1="250" x2="480" y2="282" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="284" width="200" height="36" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="302" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#085041">キャスト詳細（管理者）</text>
-
-  <line x1="480" y1="320" x2="480" y2="352" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="354" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="372" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">在籍・永久管理</text>
-  <text x="480" y="390" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">在籍料・退店処理</text>
-
-  <line x1="480" y1="402" x2="480" y2="434" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="436" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="454" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">売上・請求管理</text>
-  <text x="480" y="472" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">月次売上・請求書発行</text>
-
-  <line x1="480" y1="484" x2="480" y2="516" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="518" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="536" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">業者支払管理</text>
-  <text x="480" y="554" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">支払明細書・送金管理</text>
-
-  <line x1="480" y1="566" x2="480" y2="598" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="600" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="618" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">KPI分析</text>
-  <text x="480" y="636" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">担当者・業者・店舗比較</text>
-
-  <line x1="480" y1="648" x2="480" y2="680" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="682" width="200" height="48" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="700" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">マスタ管理</text>
-  <text x="480" y="718" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#0F6E56">店舗・業者・担当者</text>
-
-  <line x1="480" y1="730" x2="480" y2="762" stroke="#1D9E75" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="380" y="764" width="200" height="36" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
-  <text x="480" y="782" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#085041">通知・アラート設定</text>
-
-  <!-- CUSTOMER screens -->
-  <line x1="810" y1="168" x2="810" y2="200" stroke="#BA7517" stroke-width="0.5" marker-end="url(#ar)"/>
-
-  <rect x="710" y="202" width="200" height="48" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="220" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">在籍キャスト一覧</text>
-  <text x="810" y="238" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">自店舗の在籍者確認</text>
-
-  <line x1="810" y1="250" x2="810" y2="282" stroke="#BA7517" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="710" y="284" width="200" height="48" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="302" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">キャスト詳細（閲覧）</text>
-  <text x="810" y="320" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">源氏名・入店日・連絡先</text>
-
-  <line x1="810" y1="332" x2="810" y2="364" stroke="#BA7517" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="710" y="366" width="200" height="48" rx="6" fill="#FAEEDA" stroke="#EF9F39" stroke-width="0.5"/>
-  <text x="810" y="384" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">請求書・明細確認</text>
-  <text x="810" y="402" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">月次請求・支払履歴</text>
-
-  <line x1="810" y1="414" x2="810" y2="446" stroke="#BA7517" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="710" y="448" width="200" height="48" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="466" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">退店申請</text>
-  <text x="810" y="484" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#854F0B">退店フォーム送信</text>
-
-  <line x1="810" y1="496" x2="810" y2="528" stroke="#BA7517" stroke-width="0.5" marker-end="url(#ar)"/>
-  <rect x="710" y="530" width="200" height="36" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text x="810" y="548" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#633806">通知受信</text>
-
-  <!-- CROSS-ROLE: ステータス変更 → 管理者通知 -->
-  <path d="M250 522 L330 522 L330 460 L380 460" fill="none" stroke="#1D9E75" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="312" y="514" font-size="10" fill="#0F6E56">入店確定</text>
-  <text x="312" y="526" font-size="10" fill="#0F6E56">通知</text>
-
-  <!-- CROSS-ROLE: 請求管理 → 顧客請求確認 -->
-  <path d="M580 460 L640 460 L640 390 L710 390" fill="none" stroke="#BA7517" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="642" y="426" font-size="10" fill="#854F0B">請求書送付</text>
-
-  <!-- CROSS-ROLE: 退店申請 → 管理者在籍管理 -->
-  <path d="M710 472 L680 472 L680 378 L580 378" fill="none" stroke="#1D9E75" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="660" y="430" font-size="10" fill="#0F6E56">退店申請</text>
-
-  <!-- CROSS-ROLE: 管理者Push → スカウト通知 -->
-  <path d="M380 624 L330 624 L330 600 L250 600" fill="none" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="304" y="616" font-size="10" fill="#185FA5">Push送信</text>
-
-  <!-- CROSS-ROLE: 管理者Push → 顧客通知 -->
-  <path d="M580 624 L645 624 L645 548 L710 548" fill="none" stroke="#BA7517" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-  <text x="620" y="588" font-size="10" fill="#854F0B">Push送信</text>
-
-  <!-- BOTTOM SHARED -->
-  <line x1="150" y1="850" x2="150" y2="872" stroke="#888" stroke-width="0.5"/>
-  <line x1="480" y1="830" x2="480" y2="872" stroke="#888" stroke-width="0.5"/>
-  <line x1="810" y1="580" x2="810" y2="872" stroke="#888" stroke-width="0.5"/>
-  <line x1="150" y1="872" x2="810" y2="872" stroke="#888" stroke-width="0.5" marker-end="url(#ar)"/>
-  <text x="480" y="868" text-anchor="middle" font-size="10" fill="#888">共通</text>
-
-  <rect x="80" y="880" width="140" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="150" y="898" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">プロフィール・設定</text>
-
-  <rect x="280" y="880" width="140" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="350" y="898" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">権限・担当者管理</text>
-
-  <rect x="480" y="880" width="120" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="540" y="898" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">通知設定</text>
-
-  <rect x="660" y="880" width="120" height="36" rx="6" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
-  <text x="720" y="898" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="#444441">ログアウト</text>
-
-  <text x="480" y="940" text-anchor="middle" font-size="11" fill="#aaa">共通機能（全ロール）</text>
-  </svg>
-</div>
+  <div class="sb-sec">分析 — MVP</div>
+  <div class="sb-item on" onclick="go('shop',this)"><span class="sb-ic">🏪</span>店舗別 LTV<span class="sb-tag tag-mvp">MVP</span></div>
+  <div class="sb-item" onclick="go('scout',this)"><span class="sb-ic">👤</span>スカウト別 LTV<span class="sb-tag tag-mvp">MVP</span></div>
+  <div class="sb-sec">管理 — Ph.2以降</div>
+  <div class="sb-item" onclick="go('cast',this)"><span class="sb-ic">📋</span>キャスト管理<span class="sb-tag tag-ph2">Ph.2</span></div>
+  <div class="sb-item" onclick="go('zaiseki',this)"><span class="sb-ic">🏠</span>在籍・永久管理<span class="sb-tag tag-ph2">Ph.2</span></div>
+  <div class="sb-item" onclick="go('revenue',this)"><span class="sb-ic">💰</span>売上・請求<span class="sb-tag tag-ph2">Ph.2</span></div>
+  <div class="sb-item" onclick="go('payment',this)"><span class="sb-ic">🏢</span>業者支払<span class="sb-tag tag-ph2">Ph.2</span></div>
 </div>
 
-<!-- ============================
-     ADMIN SHELL (shared for all sub-pages)
-============================= -->
-<div class="page" id="page-dashboard">
-<div class="admin-wrap">
-  <div class="sidebar">
-    <div class="sb-logo">Night Work SaaS<span>管理画面</span></div>
-    <div class="sb-section">メイン</div>
-    <div class="sb-item on" onclick="switchAdmin('dashboard',this)"><div class="sb-ic">⊞</div>ダッシュボード</div>
-    <div class="sb-item" onclick="switchAdmin('cast',this)"><div class="sb-ic">👤</div>キャスト管理<div class="sb-badge">2</div></div>
-    <div class="sb-item" onclick="switchAdmin('zaiseki',this)"><div class="sb-ic">🏪</div>在籍・永久管理</div>
-    <div class="sb-section">経理</div>
-    <div class="sb-item" onclick="switchAdmin('revenue',this)"><div class="sb-ic">💰</div>売上・請求管理</div>
-    <div class="sb-item" onclick="switchAdmin('payment',this)"><div class="sb-ic">🏢</div>業者支払管理</div>
-    <div class="sb-section">分析</div>
-    <div class="sb-item" onclick="switchAdmin('kpi',this)"><div class="sb-ic">📊</div>KPI分析</div>
-    <div class="sb-section">設定</div>
-    <div class="sb-item"><div class="sb-ic">⚙</div>マスタ管理</div>
-    <div class="sb-item"><div class="sb-ic">🔔</div>通知設定</div>
+<div class="main">
+<div class="topbar">
+  <div class="tb-title" id="ttl">店舗別 LTV分析</div>
+  <div class="tb-badge" id="page-badge">MVP</div>
+  <div class="tb-r">
+    <button class="btn">CSV出力</button>
   </div>
-  <div class="main-area">
-    <div class="main-header">
-      <div class="main-title" id="admin-title">ダッシュボード</div>
-      <div class="header-actions">
-        <div style="font-size:12px;color:#888">2026年4月</div>
-        <button class="btn-sm">CSV出力</button>
-        <div style="width:32px;height:32px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#0C447C;cursor:pointer">管</div>
-      </div>
-    </div>
-    <div class="main-body">
+</div>
+<div class="body">
 
-      <!-- DASHBOARD -->
-      <div class="sub-page on" id="sp-dashboard">
-        <div class="metrics">
-          <div class="mc good">
-            <div class="mc-label">今月の入店数</div>
-            <div class="mc-val">12</div>
-            <div class="mc-sub">目標 20 / 達成率 60%</div>
-            <div class="mc-bar"><div class="mc-fill" style="width:60%;background:#1D9E75"></div></div>
-          </div>
-          <div class="mc">
-            <div class="mc-label">今月の面接数</div>
-            <div class="mc-val">87</div>
-            <div class="mc-sub">目標 130 / 達成率 67%</div>
-            <div class="mc-bar"><div class="mc-fill" style="width:67%;background:#378ADD"></div></div>
-          </div>
-          <div class="mc">
-            <div class="mc-label">今月の売上</div>
-            <div class="mc-val" style="font-size:22px">¥2.4M</div>
-            <div class="mc-sub">前月比 +8%</div>
-            <div class="mc-bar"><div class="mc-fill" style="width:72%;background:#185FA5"></div></div>
-          </div>
-          <div class="mc warn">
-            <div class="mc-label">未回収請求</div>
-            <div class="mc-val">3件</div>
-            <div class="mc-sub">¥320,000 未着金</div>
-            <div class="mc-bar"><div class="mc-fill" style="width:30%;background:#E24B4A"></div></div>
-          </div>
-        </div>
-        <div class="charts-row">
-          <div class="card">
-            <div class="card-title">担当者別 月次実績（面接・体験・入店）</div>
-            <div class="bar-chart">
-              <div class="bar-group">
-                <div class="bars">
-                  <div class="bar" style="height:72px;background:#B5D4F4" title="面接 18"></div>
-                  <div class="bar" style="height:44px;background:#378ADD" title="体験 11"></div>
-                  <div class="bar" style="height:20px;background:#185FA5" title="入店 4"></div>
-                </div>
-                <div class="bar-lbl">大橋</div>
-              </div>
-              <div class="bar-group">
-                <div class="bars">
-                  <div class="bar" style="height:88px;background:#B5D4F4"></div>
-                  <div class="bar" style="height:52px;background:#378ADD"></div>
-                  <div class="bar" style="height:28px;background:#185FA5"></div>
-                </div>
-                <div class="bar-lbl">麻生</div>
-              </div>
-              <div class="bar-group">
-                <div class="bars">
-                  <div class="bar" style="height:60px;background:#B5D4F4"></div>
-                  <div class="bar" style="height:36px;background:#378ADD"></div>
-                  <div class="bar" style="height:16px;background:#185FA5"></div>
-                </div>
-                <div class="bar-lbl">井上</div>
-              </div>
-              <div class="bar-group">
-                <div class="bars">
-                  <div class="bar" style="height:96px;background:#B5D4F4"></div>
-                  <div class="bar" style="height:56px;background:#378ADD"></div>
-                  <div class="bar" style="height:32px;background:#185FA5"></div>
-                </div>
-                <div class="bar-lbl">緒方</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:#888">
-              <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;background:#B5D4F4;border-radius:2px"></div>面接</div>
-              <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;background:#378ADD;border-radius:2px"></div>体験</div>
-              <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;background:#185FA5;border-radius:2px"></div>入店</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">ステータス分布（在籍中）</div>
-            <svg viewBox="0 0 140 140" width="120" style="display:block;margin:0 auto 12px">
-              <circle cx="70" cy="70" r="50" fill="none" stroke="#E1F5EE" stroke-width="28"/>
-              <circle cx="70" cy="70" r="50" fill="none" stroke="#378ADD" stroke-width="28" stroke-dasharray="82 232" stroke-dashoffset="-58" transform="rotate(-90 70 70)"/>
-              <circle cx="70" cy="70" r="50" fill="none" stroke="#185FA5" stroke-width="28" stroke-dasharray="126 188" stroke-dashoffset="-140" transform="rotate(-90 70 70)"/>
-              <circle cx="70" cy="70" r="50" fill="none" stroke="#1D9E75" stroke-width="28" stroke-dasharray="106 208" stroke-dashoffset="-266" transform="rotate(-90 70 70)"/>
-              <text x="70" y="66" text-anchor="middle" font-size="18" font-weight="500" fill="#1a1a1a">43</text>
-              <text x="70" y="82" text-anchor="middle" font-size="10" fill="#888">在籍中</text>
-            </svg>
-            <div class="donut-legend">
-              <div class="dl-item"><div class="dl-dot" style="background:#1D9E75"></div>永久 26件</div>
-              <div class="dl-item"><div class="dl-dot" style="background:#185FA5"></div>在籍料 12件</div>
-              <div class="dl-item"><div class="dl-dot" style="background:#378ADD"></div>体験中 5件</div>
-            </div>
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="card">
-            <div class="card-title">要対応アラート</div>
-            <div class="alert-list">
-              <div class="alert-item">
-                <div class="alert-icon" style="background:#FAEEDA;color:#633806">⚡</div>
-                <div class="alert-body"><div class="alert-t">未回収請求 3件あり</div><div class="alert-d">キャバクラA・ラウンジB・クラブC — 合計 ¥320,000</div></div>
-                <div class="alert-time">今日</div>
-              </div>
-              <div class="alert-item">
-                <div class="alert-icon" style="background:#FCEBEB;color:#791F1F">🚨</div>
-                <div class="alert-body"><div class="alert-t">退店申請 受信</div><div class="alert-d">佐藤美月（梅田 ラウンジA）から退店申請</div></div>
-                <div class="alert-time">2時間前</div>
-              </div>
-              <div class="alert-item">
-                <div class="alert-icon" style="background:#E6F1FB;color:#0C447C">📋</div>
-                <div class="alert-body"><div class="alert-t">請求書未発行 5件</div><div class="alert-d">今月末締め切りまで残り5日</div></div>
-                <div class="alert-time">昨日</div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">担当者KPI進捗（今月）</div>
-            <div class="prog-row"><div class="prog-name">大橋</div><div class="prog-bar"><div class="prog-fill" style="width:56%;background:#185FA5"></div></div><div class="prog-val">4/7.5</div></div>
-            <div class="prog-row"><div class="prog-name">麻生</div><div class="prog-bar"><div class="prog-fill" style="width:70%;background:#185FA5"></div></div><div class="prog-val">5/7</div></div>
-            <div class="prog-row"><div class="prog-name">井上</div><div class="prog-bar"><div class="prog-fill" style="width:40%;background:#E24B4A"></div></div><div class="prog-val">2/5</div></div>
-            <div class="prog-row"><div class="prog-name">緒方</div><div class="prog-bar"><div class="prog-fill" style="width:88%;background:#1D9E75"></div></div><div class="prog-val">8.5/10</div></div>
-            <div style="font-size:11px;color:#aaa;margin-top:8px">入店数 / 目標</div>
-          </div>
-        </div>
-      </div>
+<!-- ===== SHOP ===== -->
+<div class="sub on" id="sub-shop">
 
-      <!-- CAST -->
-      <div class="sub-page" id="sp-cast">
-        <div class="filter-bar">
-          <input class="search-input" placeholder="名前・店舗・源氏名で検索">
-          <button class="filter-chip on">すべて</button>
-          <button class="filter-chip">面接</button>
-          <button class="filter-chip">体験</button>
-          <button class="filter-chip">在籍</button>
-          <button class="filter-chip">後追い</button>
-          <button class="filter-chip">退店</button>
-          <select style="font-size:11px;padding:4px 8px;border:0.5px solid #ddd;border-radius:6px;background:#fff;color:#444;margin-left:auto"><option>担当者: すべて</option><option>大橋</option><option>麻生</option></select>
-          <select style="font-size:11px;padding:4px 8px;border:0.5px solid #ddd;border-radius:6px;background:#fff;color:#444"><option>地域: すべて</option><option>北新地</option><option>梅田</option></select>
-        </div>
-        <div class="card" style="padding:0">
-          <table class="data-table">
-            <thead><tr><th>本名</th><th>源氏名</th><th>ステータス</th><th>地域・店舗</th><th>紹介会社</th><th>社担当</th><th>面接日</th><th>入店日</th><th>後追</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>佐藤美月</td><td>さくら</td>
-                <td><span class="badge s-taiken">体験中</span></td>
-                <td>梅田 ラウンジA</td><td>B社</td><td>麻生</td><td>1/3</td><td>—</td>
-                <td><span style="color:#E24B4A;font-size:12px">●</span></td>
-                <td><span class="act-link">詳細</span> · <span class="act-link">編集</span></td>
-              </tr>
-              <tr>
-                <td>高橋さくら</td><td>—</td>
-                <td><span class="badge s-mensetsu">面接採用</span></td>
-                <td>北新地 キャバクラA</td><td>A社</td><td>大橋</td><td>1/3</td><td>—</td>
-                <td>—</td>
-                <td><span class="act-link">詳細</span> · <span class="act-link">編集</span></td>
-              </tr>
-              <tr>
-                <td>中村みな</td><td>みな</td>
-                <td><span class="badge s-zaiseki">在籍</span></td>
-                <td>ミナミ ラウンジB</td><td>B社</td><td>大橋</td><td>4/1</td><td>4/8</td>
-                <td>—</td>
-                <td><span class="act-link">詳細</span> · <span class="act-link">編集</span></td>
-              </tr>
-              <tr>
-                <td>田中凛</td><td>ゆいな</td>
-                <td><span class="badge s-taiken">体験中</span></td>
-                <td>北新地 キャバクラB</td><td>C社</td><td>井上</td><td>1/5</td><td>—</td>
-                <td><span style="color:#E24B4A;font-size:12px">●</span></td>
-                <td><span class="act-link">詳細</span> · <span class="act-link">編集</span></td>
-              </tr>
-              <tr>
-                <td>鈴木あい</td><td>あい</td>
-                <td><span class="badge s-risuke">リスケ</span></td>
-                <td>神戸 キャバクラC</td><td>A社</td><td>緒方</td><td>—</td><td>—</td>
-                <td>—</td>
-                <td><span class="act-link">詳細</span> · <span class="act-link">編集</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="font-size:12px;color:#888;margin-top:10px;text-align:right">全 47件 / ページ 1-20</div>
-      </div>
-
-      <!-- REVENUE -->
-      <div class="sub-page" id="sp-revenue">
-        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-          <select style="font-size:12px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a"><option>2026年4月</option><option>2026年3月</option></select>
-          <select style="font-size:12px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a"><option>地域: すべて</option><option>北新地</option><option>梅田</option></select>
-          <button class="btn-sm primary" style="margin-left:auto">請求書一括発行</button>
-          <button class="btn-sm">CSV出力</button>
-        </div>
-        <div class="three-col">
-          <div class="mc"><div class="mc-label">紹介料合計</div><div class="mc-val" style="font-size:22px">¥980,000</div></div>
-          <div class="mc"><div class="mc-label">永久料合計</div><div class="mc-val" style="font-size:22px">¥840,000</div></div>
-          <div class="mc"><div class="mc-label">在籍顧問料合計</div><div class="mc-val" style="font-size:22px">¥620,000</div></div>
-        </div>
-        <div class="card" style="padding:0">
-          <table class="data-table">
-            <thead><tr><th>店舗名</th><th>地域</th><th>紹介料</th><th>永久料</th><th>在籍顧問料</th><th>TAX</th><th>合計</th><th>請求日</th><th>着金</th><th>済</th><th>請求書</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>キャバクラA</td><td>北新地</td>
-                <td>¥60,000</td><td>¥180,000</td><td>¥120,000</td><td>¥36,000</td>
-                <td><b>¥396,000</b></td>
-                <td>前月20</td><td>4/2</td>
-                <td><span style="color:#1D9E75;font-weight:500">✓</span></td>
-                <td><span class="act-link">PDF</span></td>
-              </tr>
-              <tr>
-                <td>ラウンジA</td><td>梅田</td>
-                <td>¥20,000</td><td>¥84,000</td><td>¥48,000</td><td>¥15,200</td>
-                <td><b>¥167,200</b></td>
-                <td>当月15</td><td>—</td>
-                <td><span style="color:#E24B4A">✗</span></td>
-                <td><span class="act-link">PDF</span></td>
-              </tr>
-              <tr>
-                <td>キャバクラB</td><td>北新地</td>
-                <td>¥5,000</td><td>¥140,000</td><td>¥60,000</td><td>¥20,500</td>
-                <td><b>¥225,500</b></td>
-                <td>前月20</td><td>—</td>
-                <td><span style="color:#E24B4A">✗</span></td>
-                <td><span class="act-link">PDF</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- PAYMENT -->
-      <div class="sub-page" id="sp-payment">
-        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-          <select style="font-size:12px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a"><option>2026年4月</option></select>
-          <button class="btn-sm primary" style="margin-left:auto">支払明細書 一括発行</button>
-        </div>
-        <div class="billing-total">
-          <div><div class="bt-label">今月の業者支払合計</div><div class="bt-val">¥1,240,000</div></div>
-          <div style="text-align:right"><div class="bt-label">送金済み</div><div style="font-size:16px;font-weight:500;color:#0F6E56">¥780,000</div></div>
-          <div style="text-align:right"><div class="bt-label">未送金</div><div style="font-size:16px;font-weight:500;color:#A32D2D">¥460,000</div></div>
-        </div>
-        <div class="card" style="padding:0">
-          <table class="data-table">
-            <thead><tr><th>業者名</th><th>担当者</th><th>関西エリア</th><th>その他</th><th>合計</th><th>明細送付</th><th>送金</th><th>領収書</th><th>方法</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>A社</td><td>田中</td><td>¥360,000</td><td>—</td><td><b>¥360,000</b></td>
-                <td><span style="color:#1D9E75">✓</span></td><td><span style="color:#1D9E75">✓</span></td><td><span style="color:#1D9E75">✓</span></td>
-                <td>振込</td><td><span class="act-link">明細書</span></td>
-              </tr>
-              <tr>
-                <td>B社</td><td>鈴木</td><td>¥280,000</td><td>¥140,000</td><td><b>¥420,000</b></td>
-                <td><span style="color:#1D9E75">✓</span></td><td><span style="color:#E24B4A">✗</span></td><td><span style="color:#E24B4A">✗</span></td>
-                <td>振込</td><td><span class="act-link">明細書</span></td>
-              </tr>
-              <tr>
-                <td>C社</td><td>高橋</td><td>¥210,000</td><td>—</td><td><b>¥210,000</b></td>
-                <td><span style="color:#E24B4A">✗</span></td><td><span style="color:#E24B4A">✗</span></td><td><span style="color:#E24B4A">✗</span></td>
-                <td>現金</td><td><span class="act-link">明細書</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- KPI -->
-      <div class="sub-page" id="sp-kpi">
-        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-          <select style="font-size:12px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff"><option>期間: 今月</option><option>先月</option><option>全期間</option></select>
-          <select style="font-size:12px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff"><option>比較: 担当者別</option><option>業者別</option><option>店舗別</option></select>
-        </div>
-        <div class="card" style="padding:0;margin-bottom:12px">
-          <table class="data-table">
-            <thead><tr><th>担当者</th><th>面接数</th><th>目標</th><th>体験数</th><th>入店数</th><th>体験採用率</th><th>面接採用率</th><th>後追い数</th></tr></thead>
-            <tbody>
-              <tr><td>大橋</td><td>18</td><td style="color:#aaa">32</td><td>11</td><td>4</td><td><span style="color:#1D9E75">73%</span></td><td>56%</td><td>2</td></tr>
-              <tr><td>麻生</td><td>24</td><td style="color:#aaa">30</td><td>14</td><td>5</td><td><span style="color:#1D9E75">78%</span></td><td>62%</td><td>1</td></tr>
-              <tr><td>井上</td><td>15</td><td style="color:#aaa">28</td><td>8</td><td>2</td><td>53%</td><td><span style="color:#E24B4A">40%</span></td><td>3</td></tr>
-              <tr><td>緒方</td><td>30</td><td style="color:#aaa">40</td><td>19</td><td>8</td><td><span style="color:#1D9E75">80%</span></td><td><span style="color:#1D9E75">75%</span></td><td>0</td></tr>
-              <tr style="background:#f8f8f6;font-weight:500"><td>合計</td><td>87</td><td style="color:#aaa">130</td><td>52</td><td>19</td><td>72%</td><td>59%</td><td>6</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="two-col">
-          <div class="card">
-            <div class="card-title">業者別 紹介実績</div>
-            <table class="data-table">
-              <thead><tr><th>業者</th><th>紹介数</th><th>入店数</th><th>採用率</th></tr></thead>
-              <tbody>
-                <tr><td>A社</td><td>32</td><td>8</td><td><span style="color:#1D9E75">25%</span></td></tr>
-                <tr><td>B社</td><td>28</td><td>6</td><td>21%</td></tr>
-                <tr><td>C社</td><td>27</td><td>5</td><td>19%</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="card">
-            <div class="card-title">店舗別 在籍数</div>
-            <table class="data-table">
-              <thead><tr><th>店舗</th><th>在籍</th><th>永久</th><th>在籍料</th></tr></thead>
-              <tbody>
-                <tr><td>キャバクラA</td><td>12</td><td>8</td><td>4</td></tr>
-                <tr><td>ラウンジA</td><td>7</td><td>4</td><td>3</td></tr>
-                <tr><td>キャバクラB</td><td>9</td><td>6</td><td>3</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
+  <!-- 月次ナビ -->
+  <div class="month-nav" style="flex-wrap:wrap;gap:8px">
+    <span class="mn-label">月次：</span>
+    <button class="mn-arrow" onclick="shiftMonth(-1)">←</button>
+    <span class="mn-current" id="shop-month-label">—</span>
+    <button class="mn-arrow" onclick="shiftMonth(1)">→</button>
+    <button class="mn-btn on" id="shop-btn-2026-04" onclick="setShopMonth('2026-04',this)">2026/04</button>
+    <button class="mn-btn" onclick="setShopMonth('2026-03',this)">2026/03</button>
+    <button class="mn-btn" onclick="setShopMonth('2026-02',this)">2026/02</button>
+    <button class="mn-btn" onclick="setShopMonth('2026-01',this)">2026/01</button>
+    <button class="mn-btn" onclick="setShopMonth('2025-12',this)">2025/12</button>
+    <div style="width:1px;height:16px;background:var(--border);margin:0 2px"></div>
+    <div class="dr-wrap">
+      <span class="dr-label">期間指定：</span>
+      <input class="dr-input" type="date" id="shop-from" value="2025-12-01">
+      <span class="dr-sep">〜</span>
+      <input class="dr-input" type="date" id="shop-to" value="2026-04-20">
+      <button class="dr-apply" onclick="applyShopRange()">適用</button>
+      <button class="dr-clear" onclick="clearShopRange()">クリア</button>
     </div>
   </div>
-</div>
+
+  <div class="fml">
+    <div class="eq">店舗 LTV =</div>
+    <div class="fc b">月額粗利 ¥20,000</div><div class="fop">×</div>
+    <div class="fc t">平均継続月数</div><div class="fop">=</div>
+    <div class="fc a">1人あたりの期待収益</div>
+    <div style="margin-left:auto;font-size:10px;color:var(--text2)">継続が長い店舗 = 本当に価値のある店舗</div>
+  </div>
+
+  <div class="kpi-row" id="shop-kpis">
+    <div class="kpi"><div class="kpi-lb">月間入店数</div><div class="kpi-v b" id="k-nyuten">—</div><div class="kpi-s" id="k-nyuten-s">集計中</div><div class="kpi-diff" id="k-nyuten-d"></div></div>
+    <div class="kpi"><div class="kpi-lb">月末在籍人数</div><div class="kpi-v t" id="k-zaiseki">—</div><div class="kpi-s" id="k-zaiseki-s">在籍中</div><div class="kpi-diff" id="k-zaiseki-d"></div></div>
+    <div class="kpi"><div class="kpi-lb">月次顧問料合計</div><div class="kpi-v a" id="k-komon">—</div><div class="kpi-s" id="k-komon-s">永久+在籍料</div><div class="kpi-diff" id="k-komon-d"></div></div>
+    <div class="kpi"><div class="kpi-lb">全体 平均継続日数</div><div class="kpi-v b" id="k-keizoku">—</div><div class="kpi-s">平均LTV: <span id="k-ltv">—</span></div><div class="kpi-diff" id="k-keizoku-d"></div></div>
+  </div>
+
+  <div class="g2">
+
+    <!-- 継続月数TOP棒グラフ -->
+    <div class="card">
+      <div class="card-hd"><div class="ct">平均継続月数 ランキング</div><div class="cs" id="shop-bar-period">全期間</div></div>
+      <div class="hbar-wrap" id="shop-bars"></div>
+    </div>
+
+    <!-- 2軸マトリクス -->
+    <div class="card">
+      <div class="card-hd"><div class="ct">店舗マトリクス — 在籍数 × 継続月数</div></div>
+      <div class="matrix-wrap">
+        <div class="matrix-note">
+          <b>右上</b> = 在籍3人以上 × 継続長 → 最優先店舗　／　<b>左上</b> = 在籍1〜2人 × 継続長 → 精鋭型<br>
+          <b>右下</b> = 在籍3人以上 × 継続短 → 要改善　／　<b>左下</b> = 在籍1〜2人 × 継続短 → 優先度低
+        </div>
+        <div class="matrix-grid">
+          <div class="mx-corner"></div>
+          <div class="mx-header">在籍 1〜2人</div>
+          <div class="mx-header">在籍 3人以上</div>
+          <div class="mx-row-label">継続<br>8ヶ月<br>以上</div>
+          <div class="mx-cell hot" id="mx-TL"></div>
+          <div class="mx-cell hot" id="mx-TR"></div>
+          <div class="mx-row-label">継続<br>8ヶ月<br>未満</div>
+          <div class="mx-cell cold" id="mx-BL"></div>
+          <div class="mx-cell warm" id="mx-BR"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 店舗別テーブル -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="ct">店舗別 月次データ一覧</div>
+      <div class="card-hd .cs" style="margin-left:auto;font-size:10px;color:var(--text2)">① 4項目すべて表示</div>
+    </div>
+    <table class="tbl" id="shop-table">
+      <thead><tr>
+        <th style="width:28px"></th>
+        <th>店舗名</th><th>地域</th>
+        <th class="num">月間入店数</th>
+        <th class="num">月末在籍数</th>
+        <th class="num">月次顧問料</th>
+        <th class="num">平均継続日数 ★</th>
+        <th class="num">推定 LTV</th>
+      </tr></thead>
+      <tbody id="shop-tbody"></tbody>
+    </table>
+  </div>
+
 </div>
 
-<!-- placeholder pages that redirect to admin shell -->
-<div class="page" id="page-cast"><div style="padding:24px;font-size:13px;color:#888">← 「ダッシュボード」タブを開いてサイドバーから切り替えてください</div></div>
-<div class="page" id="page-revenue"><div style="padding:24px;font-size:13px;color:#888">← 「ダッシュボード」タブを開いてサイドバーから切り替えてください</div></div>
-<div class="page" id="page-payment"><div style="padding:24px;font-size:13px;color:#888">← 「ダッシュボード」タブを開いてサイドバーから切り替えてください</div></div>
-<div class="page" id="page-kpi"><div style="padding:24px;font-size:13px;color:#888">← 「ダッシュボード」タブを開いてサイドバーから切り替えてください</div></div>
+<!-- ===== SCOUT ===== -->
+<div class="sub" id="sub-scout">
+
+  <!-- 月次ナビ -->
+  <div class="month-nav" style="flex-wrap:wrap;gap:8px">
+    <span class="mn-label">月次：</span>
+    <button class="mn-arrow" onclick="shiftScoutMonth(-1)">←</button>
+    <span class="mn-current" id="scout-month-label">—</span>
+    <button class="mn-arrow" onclick="shiftScoutMonth(1)">→</button>
+    <button class="mn-btn on" id="scout-btn-2026-04" onclick="setScoutMonth('2026-04',this)">2026/04</button>
+    <button class="mn-btn" onclick="setScoutMonth('2026-03',this)">2026/03</button>
+    <button class="mn-btn" onclick="setScoutMonth('2026-02',this)">2026/02</button>
+    <button class="mn-btn" onclick="setScoutMonth('2026-01',this)">2026/01</button>
+    <button class="mn-btn" onclick="setScoutMonth('2025-12',this)">2025/12</button>
+    <div style="width:1px;height:16px;background:var(--border);margin:0 2px"></div>
+    <div class="dr-wrap">
+      <span class="dr-label">期間指定：</span>
+      <input class="dr-input" type="date" id="scout-from" value="2025-12-01">
+      <span class="dr-sep">〜</span>
+      <input class="dr-input" type="date" id="scout-to" value="2026-04-20">
+      <button class="dr-apply" onclick="applyScoutRange()">適用</button>
+      <button class="dr-clear" onclick="clearScoutRange()">クリア</button>
+    </div>
+  </div>
+
+  <div class="fml">
+    <div class="eq">スカウト LTV =</div>
+    <div class="fc b">月額粗利 ¥20,000</div><div class="fop">×</div>
+    <div class="fc t">紹介キャストの平均継続月数</div><div class="fop">=</div>
+    <div class="fc a">このスカウトへの月額投資上限の根拠</div>
+  </div>
+
+  <div class="note t">
+    <b>② スカウト別データ（月次）3項目：</b>
+    月間案件数（面談数）／ 月間入店数 ／ <b>紹介キャストの平均継続月数（★投資判断の根拠）</b><br>
+    面談数・入店数は面接日報シートから。継続月数は在籍管理シートと本名でJOINして算出。
+  </div>
+
+  <div class="sc-grid" id="scout-cards"></div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="ct">スカウト別 詳細比較</div>
+      <div class="cs">② 3項目 ＋ ③ タイプ分類</div>
+    </div>
+    <table class="tbl">
+      <thead><tr>
+        <th>スカウト</th><th>③ タイプ</th>
+        <th class="num">② 月間面談数</th>
+        <th class="num">② 月間入店数</th>
+        <th class="num">入店率</th>
+        <th class="num">② 平均継続日数 ★</th>
+        <th class="num">推定 LTV</th>
+        <th class="num">投資上限/月</th>
+      </tr></thead>
+      <tbody id="scout-tbody"></tbody>
+    </table>
+    <div style="padding:9px 14px;font-size:10px;color:var(--text2);border-top:1px solid var(--border)">
+      ※ 面談数・入店数は面接日報シート（全期間分）提供後に実データで自動集計。投資上限 = 推定LTV × 入店率 で算出。
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== CAST (Ph.2) ===== -->
+<div class="sub" id="sub-cast">
+  <div class="ph2-banner">
+    <div class="ph2-icon">🚧</div>
+    <div>
+      <div class="ph2-title">キャスト管理 — フェーズ2実装予定</div>
+      <div class="ph2-desc">スカウトFlutterアプリからのデータを受け取り、全担当者のキャスト状況をWeb管理画面で一元管理します。</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <input style="flex:1;max-width:220px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:11px;font-family:inherit" placeholder="本名・源氏名・店舗で検索...">
+    <button class="mn-btn on" onclick="filterCast('all',this)">すべて</button>
+    <button class="mn-btn" onclick="filterCast('在籍',this)">在籍中</button>
+    <button class="mn-btn" onclick="filterCast('体験',this)">体験中</button>
+    <button class="mn-btn" onclick="filterCast('面接',this)">面接採用</button>
+    <button class="mn-btn" onclick="filterCast('後追',this)">後追い</button>
+    <select style="margin-left:auto"><option>担当者: すべて</option><option>大橋</option><option>井上</option><option>麻生</option><option>緒方</option></select>
+  </div>
+  <div class="card" style="padding:0">
+    <table class="tbl">
+      <thead><tr>
+        <th>本名</th><th>源氏名</th><th>ステータス</th>
+        <th>地域・店舗</th><th>紹介会社</th><th>社担当</th>
+        <th class="num">面接日</th><th class="num">体験日</th><th class="num">入店日</th>
+        <th>後追</th><th>操作</th>
+      </tr></thead>
+      <tbody id="cast-tbody"></tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:var(--text2);text-align:right;margin-top:8px" id="cast-count"></div>
+</div>
+
+<!-- ===== ZAISEKI (Ph.2) ===== -->
+<div class="sub" id="sub-zaiseki">
+  <div class="ph2-banner">
+    <div class="ph2-icon">🚧</div>
+    <div>
+      <div class="ph2-title">在籍・永久管理 — フェーズ2実装予定</div>
+      <div class="ph2-desc">在籍永久管理シートをシステム化。入店日から日数・金額を自動計算し、退店処理でLTVデータを自動更新します。</div>
+    </div>
+  </div>
+  <div class="kpi-row" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px">
+    <div class="kpi"><div class="kpi-lb">現在の在籍人数</div><div class="kpi-v t">23人</div><div class="kpi-s">永久 15人 / 在籍料 8人</div></div>
+    <div class="kpi"><div class="kpi-lb">今月 発生顧問料（自動計算）</div><div class="kpi-v b">¥248,000</div><div class="kpi-s">日数 × 単価 で自動集計</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+    <button class="mn-btn on">在籍中のみ</button>
+    <button class="mn-btn">全履歴</button>
+    <button class="btn" style="margin-left:auto">月次インポート</button>
+    <button class="btn">退店処理</button>
+  </div>
+  <div class="card" style="padding:0">
+    <table class="tbl">
+      <thead><tr>
+        <th>本名</th><th>源氏名</th><th>店舗</th><th>社担当</th>
+        <th class="num">入店日</th><th class="num">経過日数</th>
+        <th>種別</th><th class="num">日次単価</th><th class="num">今月累計</th>
+        <th>退店</th>
+      </tr></thead>
+      <tbody id="zaiseki-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== REVENUE (Ph.2) ===== -->
+<div class="sub" id="sub-revenue">
+  <div class="ph2-banner">
+    <div class="ph2-icon">🚧</div>
+    <div>
+      <div class="ph2-title">売上・請求管理 — フェーズ2実装予定</div>
+      <div class="ph2-desc">店舗別月次売上集計・請求書PDF発行・着金管理をシステム化します。現行スプレッドシートのフォーマットを踏襲します。</div>
+    </div>
+  </div>
+  <div class="ph2-feature-grid">
+    <div class="ph2-feat"><div class="ph2-feat-ic">📊</div><div class="ph2-feat-t">月次売上集計</div><div class="ph2-feat-d">紹介料・永久料・在籍顧問料を自動集計。店舗・地域別で確認可能</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">🧾</div><div class="ph2-feat-t">請求書PDF自動発行</div><div class="ph2-feat-d">現行フォーマット踏襲のPDFをワンクリックで生成・送付</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">✅</div><div class="ph2-feat-t">着金管理</div><div class="ph2-feat-d">着金日・着金フラグの管理。未回収請求をアラート表示</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">📤</div><div class="ph2-feat-t">CSV・Excelエクスポート</div><div class="ph2-feat-d">月次データを任意の形式でエクスポート</div></div>
+  </div>
+</div>
+
+<!-- ===== PAYMENT (Ph.2) ===== -->
+<div class="sub" id="sub-payment">
+  <div class="ph2-banner">
+    <div class="ph2-icon">🚧</div>
+    <div>
+      <div class="ph2-title">業者支払管理 — フェーズ2実装予定</div>
+      <div class="ph2-desc">業者別の支払集計・支払明細PDF発行・送金フラグ管理をシステム化します。稼働シートの内容をそのまま移行します。</div>
+    </div>
+  </div>
+  <div class="ph2-feature-grid">
+    <div class="ph2-feat"><div class="ph2-feat-ic">🏢</div><div class="ph2-feat-t">業者別支払集計</div><div class="ph2-feat-d">紹介実績に基づく支払金額を自動集計</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">📄</div><div class="ph2-feat-t">支払明細書PDF発行</div><div class="ph2-feat-d">業者ごとの明細書を自動生成。メール添付・印刷に対応</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">💸</div><div class="ph2-feat-t">送金フラグ管理</div><div class="ph2-feat-d">送金済み・領収書受取フラグをワンクリックで更新</div></div>
+    <div class="ph2-feat"><div class="ph2-feat-ic">🔍</div><div class="ph2-feat-t">業者別KPI</div><div class="ph2-feat-d">業者ごとの紹介数・入店率・支払総額の推移を確認</div></div>
+  </div>
+</div>
+
+
+</div>
+</div>
+</div>
 
 <script>
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.getElementById('page-' + id).classList.add('on');
-  el.classList.add('on');
-  if (id !== 'transition') {
-    document.getElementById('page-dashboard').classList.add('on');
-    switchAdmin(id === 'dashboard' ? 'dashboard' : id);
+// ── データ定義 ──────────────────────────────────────────────
+// 店舗データ（架空名、月次データあり）
+const SHOPS = [
+  {name:'ルミエール',region:'北新地',months:{avg_keizoku:24.1,in_all:0.4},data:{
+    'all':{nyuten:9,zaiseki:5,komon:0,keizoku:24.1},
+    '2026-04':{nyuten:1,zaiseki:5,komon:0,keizoku:24.3},
+    '2026-03':{nyuten:0,zaiseki:4,komon:0,keizoku:24.1},
+    '2026-02':{nyuten:1,zaiseki:4,komon:0,keizoku:23.8},
+    '2026-01':{nyuten:0,zaiseki:3,komon:0,keizoku:24.0},
+    '2025-12':{nyuten:1,zaiseki:3,komon:0,keizoku:23.5},
+  }},
+  {name:'アンジュ',region:'梅田',months:{avg_keizoku:23.7,in_all:0.3},data:{
+    'all':{nyuten:6,zaiseki:3,komon:0,keizoku:23.7},
+    '2026-04':{nyuten:1,zaiseki:3,komon:0,keizoku:23.9},
+    '2026-03':{nyuten:0,zaiseki:2,komon:0,keizoku:23.7},
+    '2026-02':{nyuten:1,zaiseki:2,komon:0,keizoku:23.4},
+    '2026-01':{nyuten:0,zaiseki:2,komon:0,keizoku:23.2},
+    '2025-12':{nyuten:0,zaiseki:2,komon:0,keizoku:23.0},
+  }},
+  {name:'セラヴィ',region:'神戸',months:{avg_keizoku:21.0,in_all:0.1},data:{
+    'all':{nyuten:2,zaiseki:0,komon:116000,keizoku:21.0},
+    '2026-04':{nyuten:0,zaiseki:0,komon:5000,keizoku:21.0},
+    '2026-03':{nyuten:1,zaiseki:1,komon:5000,keizoku:20.8},
+    '2026-02':{nyuten:0,zaiseki:0,komon:5000,keizoku:20.5},
+    '2026-01':{nyuten:0,zaiseki:0,komon:5000,keizoku:20.2},
+    '2025-12':{nyuten:0,zaiseki:0,komon:5000,keizoku:20.0},
+  }},
+  {name:'シャトーノワール',region:'北新地',months:{avg_keizoku:20.4,in_all:0.1},data:{
+    'all':{nyuten:2,zaiseki:1,komon:132000,keizoku:20.4},
+    '2026-04':{nyuten:0,zaiseki:1,komon:6000,keizoku:20.4},
+    '2026-03':{nyuten:1,zaiseki:1,komon:6000,keizoku:20.1},
+    '2026-02':{nyuten:0,zaiseki:1,komon:6000,keizoku:19.8},
+    '2026-01':{nyuten:1,zaiseki:1,komon:6000,keizoku:19.5},
+    '2025-12':{nyuten:0,zaiseki:1,komon:6000,keizoku:19.2},
+  }},
+  {name:'グランパレス',region:'北新地',months:{avg_keizoku:10.4,in_all:1.0},data:{
+    'all':{nyuten:23,zaiseki:7,komon:876000,keizoku:10.4},
+    '2026-04':{nyuten:2,zaiseki:7,komon:42000,keizoku:10.6},
+    '2026-03':{nyuten:3,zaiseki:8,komon:48000,keizoku:10.4},
+    '2026-02':{nyuten:2,zaiseki:6,komon:36000,keizoku:10.1},
+    '2026-01':{nyuten:2,zaiseki:5,komon:30000,keizoku:9.8},
+    '2025-12':{nyuten:3,zaiseki:6,komon:36000,keizoku:9.5},
+  }},
+  {name:'エコーズ',region:'北新地',months:{avg_keizoku:8.8,in_all:1.5},data:{
+    'all':{nyuten:35,zaiseki:0,komon:1240000,keizoku:8.8},
+    '2026-04':{nyuten:3,zaiseki:0,komon:0,keizoku:9.0},
+    '2026-03':{nyuten:4,zaiseki:2,komon:12000,keizoku:8.8},
+    '2026-02':{nyuten:2,zaiseki:1,komon:6000,keizoku:8.6},
+    '2026-01':{nyuten:3,zaiseki:3,komon:18000,keizoku:8.3},
+    '2025-12':{nyuten:4,zaiseki:4,komon:24000,keizoku:8.0},
+  }},
+  {name:'ヴォレ梅田',region:'梅田',months:{avg_keizoku:6.2,in_all:0.5},data:{
+    'all':{nyuten:11,zaiseki:4,komon:148000,keizoku:6.2},
+    '2026-04':{nyuten:1,zaiseki:4,komon:8000,keizoku:6.4},
+    '2026-03':{nyuten:1,zaiseki:4,komon:8000,keizoku:6.2},
+    '2026-02':{nyuten:1,zaiseki:3,komon:6000,keizoku:6.0},
+    '2026-01':{nyuten:0,zaiseki:3,komon:6000,keizoku:5.8},
+    '2025-12':{nyuten:1,zaiseki:3,komon:6000,keizoku:5.5},
+  }},
+  {name:'アネラ',region:'ミナミ',months:{avg_keizoku:5.1,in_all:0.3},data:{
+    'all':{nyuten:8,zaiseki:0,komon:156000,keizoku:5.1},
+    '2026-04':{nyuten:0,zaiseki:0,komon:0,keizoku:5.2},
+    '2026-03':{nyuten:1,zaiseki:1,komon:3000,keizoku:5.1},
+    '2026-02':{nyuten:1,zaiseki:1,komon:3000,keizoku:4.9},
+    '2026-01':{nyuten:0,zaiseki:0,komon:0,keizoku:4.8},
+    '2025-12':{nyuten:1,zaiseki:1,komon:3000,keizoku:4.5},
+  }},
+  {name:'ホライゾン',region:'北新地',months:{avg_keizoku:3.2,in_all:0.7},data:{
+    'all':{nyuten:16,zaiseki:0,komon:89000,keizoku:3.2},
+    '2026-04':{nyuten:1,zaiseki:0,komon:0,keizoku:3.3},
+    '2026-03':{nyuten:2,zaiseki:1,komon:3000,keizoku:3.2},
+    '2026-02':{nyuten:1,zaiseki:0,komon:0,keizoku:3.1},
+    '2026-01':{nyuten:1,zaiseki:0,komon:0,keizoku:3.0},
+    '2025-12':{nyuten:2,zaiseki:1,komon:3000,keizoku:2.8},
+  }},
+  {name:'ラピスラズリ',region:'北新地',months:{avg_keizoku:2.8,in_all:0.2},data:{
+    'all':{nyuten:5,zaiseki:0,komon:44000,keizoku:2.8},
+    '2026-04':{nyuten:0,zaiseki:0,komon:0,keizoku:2.9},
+    '2026-03':{nyuten:1,zaiseki:1,komon:2000,keizoku:2.8},
+    '2026-02':{nyuten:0,zaiseki:0,komon:0,keizoku:2.7},
+    '2026-01':{nyuten:1,zaiseki:0,komon:0,keizoku:2.6},
+    '2025-12':{nyuten:0,zaiseki:0,komon:0,keizoku:2.5},
+  }},
+];
+
+// スカウトデータ
+const SCOUTS = [
+  {name:'大橋', av_color:'rgba(56,139,253,.15)', av_text:'#388BFD', type:'1', ltv_months:8.5,
+   data:{
+    'all':{mendan:130,nyuten:24,keizoku:8.5},
+    '2026-04':{mendan:14,nyuten:3,keizoku:8.7},
+    '2026-03':{mendan:16,nyuten:4,keizoku:8.5},
+    '2026-02':{mendan:18,nyuten:5,keizoku:8.4},
+    '2026-01':{mendan:12,nyuten:2,keizoku:8.2},
+    '2025-12':{mendan:15,nyuten:3,keizoku:8.0},
+   }},
+  {name:'井上', av_color:'rgba(63,185,80,.12)', av_text:'#3FB950', type:'2', ltv_months:4.5,
+   data:{
+    'all':{mendan:60,nyuten:8,keizoku:4.5},
+    '2026-04':{mendan:6,nyuten:1,keizoku:4.6},
+    '2026-03':{mendan:8,nyuten:2,keizoku:4.5},
+    '2026-02':{mendan:7,nyuten:1,keizoku:4.4},
+    '2026-01':{mendan:5,nyuten:1,keizoku:4.3},
+    '2025-12':{mendan:9,nyuten:2,keizoku:4.2},
+   }},
+  {name:'麻生', av_color:'rgba(188,140,255,.12)', av_text:'#BC8CFF', type:'', ltv_months:4.2,
+   data:{
+    'all':{mendan:80,nyuten:7,keizoku:4.2},
+    '2026-04':{mendan:8,nyuten:1,keizoku:4.3},
+    '2026-03':{mendan:9,nyuten:1,keizoku:4.2},
+    '2026-02':{mendan:10,nyuten:2,keizoku:4.1},
+    '2026-01':{mendan:7,nyuten:1,keizoku:4.0},
+    '2025-12':{mendan:11,nyuten:1,keizoku:3.9},
+   }},
+  {name:'緒方', av_color:'rgba(248,81,73,.12)', av_text:'#F85149', type:'', ltv_months:2.0,
+   data:{
+    'all':{mendan:20,nyuten:1,keizoku:2.0},
+    '2026-04':{mendan:2,nyuten:0,keizoku:2.1},
+    '2026-03':{mendan:3,nyuten:1,keizoku:2.0},
+    '2026-02':{mendan:2,nyuten:0,keizoku:1.9},
+    '2026-01':{mendan:3,nyuten:0,keizoku:1.8},
+    '2025-12':{mendan:4,nyuten:0,keizoku:1.7},
+   }},
+];
+
+const TYPE_OPTS = ['タイプ未設定','優先度1 — 全部自走型','優先度2 — 面談後押し型','優先度3 — 丸投げ型'];
+const TYPE_CLASS = {1:'tp1',2:'tp2',3:'tp3'};
+const TYPE_LABEL = {1:'全部自走型',2:'面談後押し型',3:'丸投げ型'};
+
+const MONTHS = ['2026-04','2026-03','2026-02','2026-01','2025-12'];
+let shopMonth = '2026-04';
+let scoutMonth = '2026-04';
+let shopRange = null;  // {from:'2025-12-01', to:'2026-04-20'} or null
+let scoutRange = null;
+let scoutTypes = {大橋:'1',井上:'2',麻生:'',緒方:''};
+
+// ── ユーティリティ ─────────────────────────────────────────
+function fmtYen(n){ return n===0?'—':'¥'+n.toLocaleString(); }
+function fmtMonth(m){ return m==='all'?'全期間':m.replace('-','/'); }
+function colorK(v,mid,lo){return v>=mid?'good':v>=lo?'warn':'bad';}
+function mToD(months){ return Math.round(months*30.44); }
+function fmtDays(months){ return mToD(months)+'日 <span style="font-size:11px;color:var(--text2);font-weight:400">('+months+'ヶ月)</span>'; }
+function fmtDaysPlain(months){ return mToD(months)+'日 ('+months+'ヶ月)'; }
+
+// ── 店舗画面 ──────────────────────────────────────────────
+function getShopData(s, m, range){
+  if(range){
+    // 期間内の月を集計して平均
+    const fromD=new Date(range.from), toD=new Date(range.to);
+    const months=MONTHS.filter(mo=>{
+      const d=new Date(mo+'-01');
+      const dEnd=new Date(mo.replace('-','/')+'/01');
+      dEnd.setMonth(dEnd.getMonth()+1); dEnd.setDate(dEnd.getDate()-1);
+      return d>=fromD && dEnd<=toD;
+    });
+    if(!months.length) return s.data[MONTHS[0]]||s.data['all'];
+    const sum={nyuten:0,zaiseki:0,komon:0,keizoku:0};
+    months.forEach(mo=>{ const d=s.data[mo]||{nyuten:0,zaiseki:0,komon:0,keizoku:0}; sum.nyuten+=d.nyuten; sum.zaiseki+=d.zaiseki; sum.komon+=d.komon; sum.keizoku+=d.keizoku; });
+    return {nyuten:Math.round(sum.nyuten/months.length), zaiseki:Math.round(sum.zaiseki/months.length), komon:Math.round(sum.komon/months.length), keizoku:+(sum.keizoku/months.length).toFixed(1)};
   }
+  return s.data[m]||s.data['all'];
+}
+function fmtPeriod(m, range){
+  if(range) return range.from.slice(0,7).replace('-','/')+'〜'+range.to.slice(0,7).replace('-','/');
+  return fmtMonth(m);
+}
+function applyShopRange(){
+  const f=document.getElementById('shop-from').value, t=document.getElementById('shop-to').value;
+  if(!f||!t){ return; }
+  shopRange={from:f,to:t};
+  document.querySelectorAll('#sub-shop .mn-btn').forEach(b=>b.classList.remove('on'));
+  renderShop();
+}
+function clearShopRange(){ shopRange=null; renderShop(); }
+function applyScoutRange(){
+  const f=document.getElementById('scout-from').value, t=document.getElementById('scout-to').value;
+  if(!f||!t){ return; }
+  scoutRange={from:f,to:t};
+  document.querySelectorAll('#sub-scout .mn-btn').forEach(b=>b.classList.remove('on'));
+  renderScout();
+}
+function clearScoutRange(){ scoutRange=null; renderScout(); }
+
+function renderShop(){
+  const m = shopMonth;
+  const periodLabel = fmtPeriod(m, shopRange);
+  document.getElementById('shop-month-label').textContent = shopRange ? periodLabel : fmtMonth(m);
+  document.getElementById('shop-bar-period').textContent = periodLabel;
+
+  // KPI集計
+  let totNyuten=0,totZaiseki=0,totKomon=0,keizokuSum=0,cnt=0;
+  SHOPS.forEach(s=>{
+    const d=getShopData(s, m, shopRange);
+    totNyuten+=d.nyuten; totZaiseki+=d.zaiseki; totKomon+=d.komon;
+    keizokuSum+=d.keizoku; cnt++;
+  });
+  const avgK=(keizokuSum/cnt).toFixed(1);
+
+  // KPI更新
+  animVal('k-nyuten', totNyuten+'件');
+  animVal('k-zaiseki', totZaiseki+'人');
+  animVal('k-komon', totKomon===0?'—':'¥'+(totKomon/10000).toFixed(0)+'万');
+  const kEl=document.getElementById('k-keizoku');
+  if(kEl){
+    kEl.innerHTML = fmtDays(avgK);
+    const card=kEl.closest('.kpi');
+    if(card){ card.classList.remove('updated'); void card.offsetWidth; card.classList.add('updated'); }
+  }
+  document.getElementById('k-ltv').textContent='¥'+(Math.round(avgK*20000/1000)*1000).toLocaleString();
+
+  // ランキング棒グラフ
+  const sorted=[...SHOPS].map(s=>({name:s.name,k:(s.data[m]||s.data['all']).keizoku}))
+    .sort((a,b)=>b.k-a.k);
+  const maxK=sorted[0].k;
+  let barsHtml='';
+  sorted.forEach(s=>{
+    const pct=(s.k/maxK*100).toFixed(0);
+    const col=s.k>=15?'#388BFD':s.k>=8?'#58A6FF':s.k>=5?'#D29922':'#F85149';
+    const cls=s.k>=15?'good':s.k>=5?'warn':'bad';
+    barsHtml+=`<div class="hb-row">
+      <div class="hb-lb">${s.name}</div>
+      <div class="hb-track"><div class="hb-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="hb-val ${cls}">${mToD(s.k)}日<br><span style='font-size:9px;color:var(--text2)'>(${s.k}ヶ月)</span></div>
+    </div>`;
+  });
+  document.getElementById('shop-bars').innerHTML=barsHtml;
+
+  // マトリクス
+  const medZ=3, medK=8; // 中央値
+  const cells={TL:[],TR:[],BL:[],BR:[]};
+  SHOPS.forEach(s=>{
+    const d=getShopData(s, m, shopRange);
+    const bigZ=d.zaiseki>=medZ, longK=d.keizoku>=medK;
+    const key=longK?(bigZ?'TR':'TL'):(bigZ?'BR':'BL');
+    cells[key].push({name:s.name,k:d.keizoku,z:d.zaiseki,ltv:Math.round(d.keizoku*20000)});
+  });
+  ['TL','TR','BL','BR'].forEach(k=>{
+    const el=document.getElementById('mx-'+k);
+    const items=cells[k];
+    if(!items.length){el.innerHTML='<div style="font-size:10px;color:var(--text3);padding:4px">—</div>';return;}
+    el.innerHTML=items.sort((a,b)=>b.k-a.k).map(it=>{
+      const col=it.k>=15?'#388BFD':it.k>=8?'#3FB950':it.k>=5?'#D29922':'#F85149';
+      return `<div class="mx-shop" title="平均継続:${mToD(it.k)}日(${it.k}ヶ月) 在籍:${it.z}人 推定LTV:¥${it.ltv.toLocaleString()}">
+        <div class="mx-badge" style="background:${col}"></div>
+        <div class="sn">${it.name}</div>
+        <div class="sv" style="color:${col}">${mToD(it.k)}日</div>
+      </div>`;
+    }).join('');
+  });
+
+  // テーブル
+  const rows=[...SHOPS].map(s=>({shop:s,d:getShopData(s, m, shopRange)}))
+    .sort((a,b)=>b.d.keizoku-a.d.keizoku);
+  const rankIcons=['r1','r2','r3'];
+  let html='';
+  rows.forEach((r,i)=>{
+    const d=r.d, s=r.shop;
+    const ltv=Math.round(d.keizoku*20000);
+    const kCls=d.keizoku>=15?'good':d.keizoku>=5?'warn':'bad';
+    html+=`<tr>
+      <td><span class="rk ${rankIcons[i]||'rn'}">${i+1}</span></td>
+      <td><b>${s.name}</b></td><td>${s.region}</td>
+      <td class="num">${d.nyuten}件</td>
+      <td class="num">${d.zaiseki}人</td>
+      <td class="num">${d.komon===0?'—':'¥'+d.komon.toLocaleString()}</td>
+      <td class="num ${kCls}">${mToD(d.keizoku)}日 <span style="font-size:10px;color:var(--text2)">(${d.keizoku}ヶ月)</span></td>
+      <td class="num ${kCls}">¥${ltv.toLocaleString()}</td>
+    </tr>`;
+  });
+  document.getElementById('shop-tbody').innerHTML=html;
 }
 
-function switchAdmin(id, sidebarEl) {
-  document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.sb-item').forEach(s => s.classList.remove('on'));
-  const sp = document.getElementById('sp-' + id);
-  if (sp) sp.classList.add('on');
-  if (sidebarEl) sidebarEl.classList.add('on');
-  const titles = {dashboard:'ダッシュボード',cast:'キャスト管理',zaiseki:'在籍・永久管理',revenue:'売上・請求管理',payment:'業者支払管理',kpi:'KPI分析'};
-  document.getElementById('admin-title').textContent = titles[id] || id;
+function animVal(id, val){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=val;
+  const card=el.closest('.kpi');
+  if(card){ card.classList.remove('updated'); void card.offsetWidth; card.classList.add('updated'); }
 }
+
+function setShopMonth(m, btn){
+  shopMonth=m;
+  shopRange=null;
+  document.querySelectorAll('#sub-shop .mn-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderShop();
+}
+
+function shiftMonth(d){
+  const i=MONTHS.indexOf(shopMonth); const ni=Math.max(0,Math.min(MONTHS.length-1,i+d));
+  const btn=document.querySelectorAll('#sub-shop .mn-btn')[ni];
+  setShopMonth(MONTHS[ni],btn);
+}
+
+// ── スカウト画面 ───────────────────────────────────────────
+function renderScout(){
+  const m=scoutMonth;
+  document.getElementById('scout-month-label').textContent=fmtMonth(m);
+
+  // カード
+  let cardsHtml='';
+  SCOUTS.forEach(s=>{
+    const d=getShopData(s, m, scoutRange);
+    const rate=d.mendan>0?(d.nyuten/d.mendan*100).toFixed(1)+'%':'—';
+    const ltv=Math.round(d.keizoku*20000);
+    const max_ltv=170000;
+    const pct=(ltv/max_ltv*100).toFixed(0);
+    const typeVal=scoutTypes[s.name]||'';
+    const typeBadge=typeVal?`<span class="tp ${TYPE_CLASS[typeVal]}">${TYPE_LABEL[typeVal]}</span>`:
+      `<select class="tp-sel" onchange="setType('${s.name}',this)">${TYPE_OPTS.map((o,i)=>`<option value="${i===0?'':i}" ${typeVal===(i===0?'':String(i))?'selected':''}>${o}</option>`).join('')}</select>`;
+    const isHl=s.name==='大橋';
+    const kCol=d.keizoku>=7?'var(--teal)':d.keizoku>=4?'var(--amber)':'var(--red)';
+    const invCol=s.name==='大橋'?'#388BFD':ltv>=80000?'var(--text)':'var(--text2)';
+
+    cardsHtml+=`<div class="sc${isHl?' hl':''}">
+      <div class="sc-top">
+        <div class="sc-av" style="background:${s.av_color};color:${s.av_text}">${s.name[0]}</div>
+        <div><div class="sc-name">${s.name}</div><div class="sc-sub">${typeBadge}</div></div>
+        <div class="sc-right"><div class="sc-inv-lb">投資上限/月</div><div class="sc-inv-v" style="color:${invCol}">¥${(ltv).toLocaleString()}〜</div></div>
+      </div>
+      <div class="sc-ms">
+        <div class="sc-m"><div class="sc-m-lb">月間面談数</div><div class="sc-m-v">${d.mendan}</div></div>
+        <div class="sc-m"><div class="sc-m-lb">月間入店数</div><div class="sc-m-v" style="color:#388BFD">${d.nyuten}</div></div>
+        <div class="sc-m"><div class="sc-m-lb">入店率</div><div class="sc-m-v" style="color:${d.mendan>0&&d.nyuten/d.mendan>=0.15?'var(--teal)':d.nyuten/d.mendan>=0.08?'var(--amber)':'var(--red)'}">${rate}</div></div>
+        <div class="sc-m"><div class="sc-m-lb">平均継続日数</div><div class="sc-m-v" style="color:${kCol};font-size:12px">${mToD(d.keizoku)}日<br><span style="font-size:9px;color:var(--text2)">(${d.keizoku}ヶ月)</span></div></div>
+      </div>
+      <div class="sc-ltv">
+        <div><div class="sc-ltv-lb">推定 LTV（1人あたり）</div><div class="sc-ltv-sub">= ¥20,000 × ${d.keizoku}ヶ月 (${mToD(d.keizoku)}日)</div></div>
+        <div class="sc-ltv-v" style="color:${invCol}">¥${ltv.toLocaleString()}</div>
+      </div>
+      <div class="sc-prog"><div class="sc-prog-fill" style="width:${pct}%;background:${s.av_text}"></div></div>
+    </div>`;
+  });
+  document.getElementById('scout-cards').innerHTML=cardsHtml;
+
+  // テーブル
+  let html='';
+  SCOUTS.forEach(s=>{
+    const d=getShopData(s, m, scoutRange);
+    const rate=d.mendan>0?(d.nyuten/d.mendan*100).toFixed(1)+'%':'—';
+    const ltv=Math.round(d.keizoku*20000);
+    const typeVal=scoutTypes[s.name]||'';
+    const typeBadge=typeVal?`<span class="tp ${TYPE_CLASS[typeVal]}">${TYPE_LABEL[typeVal]}</span>`:'<span style="font-size:10px;color:var(--text2)">未設定</span>';
+    const kCls=d.keizoku>=7?'good':d.keizoku>=4?'warn':'bad';
+    const rCls=d.mendan>0&&d.nyuten/d.mendan>=0.15?'good':d.nyuten/d.mendan>=0.08?'warn':'bad';
+    html+=`<tr>
+      <td><b>${s.name}</b></td>
+      <td>${typeBadge}</td>
+      <td class="num">${d.mendan}</td><td class="num">${d.nyuten}</td>
+      <td class="num ${rCls}">${rate}</td>
+      <td class="num ${kCls}">${mToD(d.keizoku)}日 <span style="font-size:10px;color:var(--text2)">(${d.keizoku}ヶ月)</span></td>
+      <td class="num ${kCls}">¥${ltv.toLocaleString()}</td>
+      <td class="num" style="color:${kCls==='good'?'#388BFD':'inherit'}">¥${ltv.toLocaleString()}〜</td>
+    </tr>`;
+  });
+  document.getElementById('scout-tbody').innerHTML=html;
+}
+
+function setType(name,sel){
+  scoutTypes[name]=sel.value;
+  renderScout();
+}
+
+function setScoutMonth(m,btn){
+  scoutMonth=m;
+  scoutRange=null;
+  document.querySelectorAll('#sub-scout .mn-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderScout();
+}
+
+function shiftScoutMonth(d){
+  const i=MONTHS.indexOf(scoutMonth); const ni=Math.max(0,Math.min(MONTHS.length-1,i+d));
+  const btn=document.querySelectorAll('#sub-scout .mn-btn')[ni];
+  setScoutMonth(MONTHS[ni],btn);
+}
+
+// ── ページ切替 ─────────────────────────────────────────────
+function go(id,el){
+  document.querySelectorAll('.sub').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('on'));
+  const subEl=document.getElementById('sub-'+id);
+  if(subEl) subEl.classList.add('on');
+  if(el) el.classList.add('on');
+  const titles={shop:'店舗別 LTV分析',scout:'スカウト別 LTV分析',cast:'キャスト管理',zaiseki:'在籍・永久管理',revenue:'売上・請求管理',payment:'業者支払管理'};
+  const ttl=document.getElementById('ttl');
+  if(ttl) ttl.textContent=titles[id]||id;
+  const badge=document.getElementById('page-badge');
+  if(badge) badge.textContent=['shop','scout'].includes(id)?'MVP':'Ph.2';
+}
+
+
+// ── Ph.2 キャストデータ ──────────────────────────────────
+const CASTS = [
+  {name:'田中○○',yago:'さくら',status:'在籍',shop:'グランパレス',region:'北新地',agency:'A社',scout:'大橋',mensetsu:'2026/03/10',taiken:'2026/03/12',nyuten:'2026/03/15',atooi:false},
+  {name:'鈴木○○',yago:'みく',status:'体験',shop:'アンジュ',region:'梅田',agency:'B社',scout:'井上',mensetsu:'2026/04/18',taiken:'2026/04/18',nyuten:'',atooi:true},
+  {name:'山本○○',yago:'りな',status:'面接',shop:'アネラ',region:'ミナミ',agency:'C社',scout:'麻生',mensetsu:'2026/04/20',taiken:'',nyuten:'',atooi:false},
+  {name:'伊藤○○',yago:'あおい',status:'在籍',shop:'エコーズ',region:'北新地',agency:'A社',scout:'大橋',mensetsu:'2026/02/05',taiken:'2026/02/07',nyuten:'2026/02/10',atooi:false},
+  {name:'渡辺○○',yago:'ゆな',status:'体験',shop:'ヴォレ梅田',region:'梅田',agency:'B社',scout:'麻生',mensetsu:'2026/04/15',taiken:'2026/04/16',nyuten:'',atooi:true},
+  {name:'中村○○',yago:'れみ',status:'在籍',shop:'ルミエール',region:'北新地',agency:'フリー',scout:'大橋',mensetsu:'2025/12/01',taiken:'2025/12/03',nyuten:'2025/12/08',atooi:false},
+  {name:'小林○○',yago:'なな',status:'面接',shop:'セラヴィ',region:'神戸',agency:'D社',scout:'緒方',mensetsu:'2026/04/19',taiken:'',nyuten:'',atooi:false},
+  {name:'加藤○○',yago:'ひな',status:'在籍',shop:'シャトーノワール',region:'北新地',agency:'A社',scout:'井上',mensetsu:'2026/01/10',taiken:'2026/01/12',nyuten:'2026/01/15',atooi:false},
+];
+const STATUS_STYLE = {
+  '在籍':'background:rgba(63,185,80,.15);color:#3FB950',
+  '体験':'background:rgba(188,140,255,.15);color:#BC8CFF',
+  '面接':'background:rgba(56,139,253,.15);color:#388BFD',
+  '退店':'background:rgba(248,81,73,.15);color:#F85149',
+};
+let castFilter='all';
+function filterCast(f,btn){
+  castFilter=f;
+  document.querySelectorAll('#sub-cast .mn-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderCast();
+}
+function renderCast(){
+  let rows=CASTS;
+  if(castFilter!=='all') rows=rows.filter(c=>c.status.includes(castFilter)||(castFilter==='後追'&&c.atooi));
+  const tbody=document.getElementById('cast-tbody');
+  const count=document.getElementById('cast-count');
+  if(!tbody) return;
+  tbody.innerHTML=rows.map(c=>`<tr>
+    <td>${c.name}</td>
+    <td>${c.yago||'—'}</td>
+    <td><span style="font-size:10px;padding:2px 8px;border-radius:8px;${STATUS_STYLE[c.status]||''}">${c.status}</span></td>
+    <td>${c.region} ${c.shop}</td>
+    <td>${c.agency}</td>
+    <td>${c.scout}</td>
+    <td class="num">${c.mensetsu||'—'}</td>
+    <td class="num">${c.taiken||'—'}</td>
+    <td class="num">${c.nyuten||'—'}</td>
+    <td style="text-align:center">${c.atooi?'<span style="color:#F85149;font-size:13px">●</span>':'—'}</td>
+    <td><span style="color:#388BFD;font-size:11px;cursor:pointer">詳細</span></td>
+  </tr>`).join('');
+  if(count) count.textContent=`${rows.length}件 / 全${CASTS.length}件`;
+}
+
+// ── Ph.2 在籍管理データ ──────────────────────────────────
+const ZAISEKI_DATA = [
+  {name:'田中○○',yago:'さくら',shop:'グランパレス',scout:'大橋',nyuten:'2025/09/15',type:'永久',tanka:3000},
+  {name:'中村○○',yago:'れみ',shop:'ルミエール',scout:'大橋',nyuten:'2025/12/08',type:'永久',tanka:3000},
+  {name:'加藤○○',yago:'ひな',shop:'シャトーノワール',scout:'井上',nyuten:'2026/01/15',type:'在籍料',tanka:2000},
+  {name:'伊藤○○',yago:'あおい',shop:'エコーズ',scout:'大橋',nyuten:'2026/02/10',type:'永久',tanka:3000},
+  {name:'佐藤○○',yago:'みき',shop:'グランパレス',scout:'麻生',nyuten:'2026/02/20',type:'在籍料',tanka:2000},
+  {name:'山田○○',yago:'こころ',shop:'ヴォレ梅田',scout:'大橋',nyuten:'2026/03/05',type:'永久',tanka:3000},
+  {name:'木村○○',yago:'りん',shop:'アネラ',scout:'麻生',nyuten:'2026/03/18',type:'在籍料',tanka:2000},
+  {name:'林○○',yago:'えま',shop:'ルミエール',scout:'大橋',nyuten:'2026/04/02',type:'永久',tanka:3000},
+];
+function renderZaiseki(){
+  const today=new Date('2026-04-20');
+  const tbody=document.getElementById('zaiseki-tbody');
+  if(!tbody) return;
+  tbody.innerHTML=ZAISEKI_DATA.map(z=>{
+    const nyutenD=new Date(z.nyuten.replace(/\//g,'-'));
+    const days=Math.floor((today-nyutenD)/86400000);
+    const thisMonthDays=20; // 4月1日〜20日
+    const monthTotal=z.tanka*thisMonthDays;
+    const typeStyle=z.type==='永久'?'background:rgba(63,185,80,.15);color:#3FB950':'background:rgba(56,139,253,.15);color:#388BFD';
+    return `<tr>
+      <td>${z.name}</td><td>${z.yago}</td><td>${z.shop}</td><td>${z.scout}</td>
+      <td class="num">${z.nyuten}</td>
+      <td class="num good">${days}日</td>
+      <td><span style="font-size:10px;padding:2px 7px;border-radius:8px;${typeStyle}">${z.type}</span></td>
+      <td class="num">¥${z.tanka.toLocaleString()}/日</td>
+      <td class="num">¥${monthTotal.toLocaleString()}</td>
+      <td><span style="color:#F85149;font-size:11px;cursor:pointer" onclick="alert('退店処理（フェーズ2で実装）')">退店</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 初期化 ─────────────────────────────────────────────────
+// DOMロード後に実行
+window.addEventListener('DOMContentLoaded', function(){
+  const shopBtn = document.querySelector('#sub-shop .mn-btn');
+  setShopMonth('2026-04', shopBtn);
+  const scoutBtn = document.querySelector('#sub-scout .mn-btn');
+  setScoutMonth('2026-04', scoutBtn);
+  renderCast();
+  renderZaiseki();
+});
 </script>
 </body>
 </html>

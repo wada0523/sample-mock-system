@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;font-size:9.5pt;color:#1a1a1a;background:#E8ECF0;line-height:1.65;padding:20px 0 40px}
+/* A4ページ風コンテナ */
+.page{width:210mm;min-height:297mm;background:#F7F9FC;margin:0 auto 24px;padding:18mm 20mm 20mm;box-shadow:0 2px 16px rgba(0,0,0,.15);position:relative}
+@media print{
+  body{background:#fff;padding:0}
+  .page{width:100%;min-height:auto;margin:0;padding:18mm 20mm 20mm;box-shadow:none;page-break-after:always}
+  .page:last-child{page-break-after:avoid}
+}
+@page{size:A4;margin:0}
+.pb{/* ページ分割はpageクラスで管理 */}
+.nb{page-break-inside:avoid;break-inside:avoid}
+h2,h3,table{page-break-inside:avoid;break-inside:avoid}
+h2{page-break-after:avoid}
+
+.cover{background:#0D1117;margin:-18mm -20mm 0 -20mm;padding:16mm 20mm 14mm;border-bottom:3px solid #388BFD;margin-bottom:10mm;border-radius:0}
+.cv-label{font-size:7pt;color:rgba(255,255,255,.3);letter-spacing:.15em;margin-bottom:5mm}
+.cv-title{font-size:20pt;font-weight:700;color:#fff;margin-bottom:2mm;line-height:1.3}
+.cv-sub{font-size:10.5pt;color:#388BFD;margin-bottom:6mm}
+.cv-meta{font-size:8pt;color:rgba(255,255,255,.3)}
+
+h2{font-size:11pt;font-weight:700;color:#fff;padding:7px 12px;border-radius:5px;margin:9mm 0 4mm}
+h2.b{background:#388BFD}h2.t{background:#3FB950}h2.a{background:#D29922}h2.d{background:#30363D}
+h3{font-size:10pt;font-weight:700;margin:5mm 0 3mm;padding-left:8px}
+h3.b{color:#388BFD;border-left:3px solid #388BFD}h3.t{color:#3FB950;border-left:3px solid #3FB950}
+
+table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-bottom:4mm}
+thead th{padding:6px 8px;text-align:left;font-size:8pt;font-weight:700;color:#fff}
+th.b{background:#388BFD}th.t{background:#3FB950}th.a{background:#D29922}th.d{background:#30363D}
+tbody tr:nth-child(odd) td{background:#fff}
+tbody tr:nth-child(even) td{background:#EEF5FF}
+td{padding:5px 8px;border-bottom:.5px solid #D8E8F8;vertical-align:top;line-height:1.6}
+td b{font-weight:700}
+.num{text-align:right}
+.good{color:#2A7A3B;font-weight:700}
+.warn{color:#9A6800;font-weight:700}
+tr.total{background:#EBF4FF!important;font-weight:700}
+
+.hl{background:#E8F3FF;border-left:3px solid #388BFD;padding:7px 10px;border-radius:0 5px 5px 0;margin:3mm 0;font-size:9pt;line-height:1.7}
+.hl.t{background:#E8F5EE;border-left-color:#3FB950}
+.hl.a{background:#FEF8E8;border-left-color:#D29922}
+.hl.d{background:#F0F0F0;border-left-color:#888}
+.note{font-size:7.5pt;color:#6A7A8A;margin:1.5mm 0;padding-left:4px;line-height:1.6}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-bottom:4mm}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4mm;margin-bottom:4mm}
+.kc{background:#fff;border:1px solid #C8DFF4;border-radius:7px;padding:4mm 5mm}
+.kc .lb{font-size:7.5pt;color:#7A9AB8;margin-bottom:1.5mm}
+.kc .vl{font-size:14pt;font-weight:700;color:#388BFD}
+.kc .sb{font-size:7.5pt;color:#9AAFC0;margin-top:1mm}
+
+.ph{border-radius:6px;padding:8px 10px;margin-bottom:5mm}
+.ph.b{background:#EBF4FF;border:1px solid #C8DFF4}
+.ph.t{background:#E8F5EE;border:1px solid #9FE1CB}
+.ph.a{background:#FEF8E8;border:1px solid #F4C77A}
+.ph-title{font-size:10pt;font-weight:700;margin-bottom:3mm}
+.ph-title.b{color:#388BFD}.ph-title.t{color:#3FB950}.ph-title.a{color:#D29922}
+.badge{display:inline-block;font-size:7.5pt;padding:1px 6px;border-radius:8px;font-weight:700;vertical-align:middle;margin-left:5px}
+.bd-b{background:#EBF4FF;color:#388BFD}
+.bd-t{background:#E8F5EE;color:#3FB950}
+.bd-g{background:#F0EFE8;color:#666}
+
+.cl{list-style:none;padding:0;margin:3mm 0}
+.cl li{padding:5px 0 5px 22px;position:relative;font-size:9pt;border-bottom:.5px solid #D8E8F8;line-height:1.6}
+.cl li::before{content:'';position:absolute;left:0;top:8px;width:12px;height:12px;border:1.5px solid #93BDE0;border-radius:2px;background:#fff}
+
+.fml{background:#0D1117;border-radius:8px;padding:11px 15px;margin-bottom:5mm;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fml .eq{font-size:11pt;color:#fff;font-weight:600}
+.fml .ch{font-size:9.5pt;font-weight:700;padding:3px 9px;border-radius:16px}
+.fml .ch.b{background:rgba(56,139,253,.15);color:#388BFD;border:1px solid rgba(56,139,253,.3)}
+.fml .ch.t{background:rgba(63,185,80,.15);color:#3FB950;border:1px solid rgba(63,185,80,.3)}
+.fml .ch.a{background:rgba(210,153,34,.15);color:#D29922;border:1px solid rgba(210,153,34,.3)}
+.fml .op{color:#8B949E;font-size:13pt;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="page">
+<div class="cover">
+  <div class="cv-label">DEVELOPMENT PROPOSAL — Ver.3.0</div>
+  <div class="cv-title">キャスト管理システム<br>LTV分析基盤 開発提案書</div>
+  <div class="cv-meta" style="margin-top:4mm">打合せ用資料　／　Ver.3.0　／　2026年4月</div>
+</div>
+
+<!-- 1. 何を作るか -->
+<div class="nb">
+<h2 class="b">1．何を作るか — 3つのコアデータ</h2>
+<div class="hl">
+  永久在籍管理シート（22ヶ月分）・面接日報シートに蓄積されたデータを活かして、<b>LTVの計算と投資判断に使える分析基盤を構築する。</b>ゼロから入力し直すのではなく、既存データを整理・再設計する。
+</div>
+
+<div class="fml">
+  <div class="eq">LTV =</div>
+  <div class="ch b">月額粗利（¥20,000）</div>
+  <div class="op">×</div>
+  <div class="ch t">平均継続月数</div>
+  <div class="op">=</div>
+  <div class="ch a">店舗・スカウトへの投資判断の根拠</div>
+</div>
+
+<h3 class="b">① 店舗別データ（月次）— 永久在籍管理シートから集計</h3>
+<table>
+  <thead><tr><th class="b" style="width:26%">項目</th><th class="b" style="width:42%">内容</th><th class="b">データ取得元</th></tr></thead>
+  <tbody>
+    <tr><td>月間入店数</td><td>各店舗への月別入店数</td><td>在籍永久管理シート / 入店日</td></tr>
+    <tr><td>月末在籍人数</td><td>各店舗の月末時点の在籍キャスト数</td><td>在籍永久管理シート / 入店日・退店日</td></tr>
+    <tr><td>月次顧問料</td><td>店舗ごとの月次収益実績</td><td>在籍永久管理シート / 金額列</td></tr>
+    <tr><td><b>平均継続日数 ★最重要</b></td><td>その店舗に在籍した子が平均何日続いたか。この数字があって初めてLTVが計算できる。継続が長い店舗 = 本当に価値のある店舗</td><td>在籍永久管理シート / 入店日・退店日（補完処理が必要）</td></tr>
+  </tbody>
+</table>
+
+<h3 class="b">② スカウト別データ（月次）— 面接日報シート × 在籍管理シートから集計</h3>
+<table>
+  <thead><tr><th class="b" style="width:26%">項目</th><th class="b" style="width:42%">内容</th><th class="b">データ取得元</th></tr></thead>
+  <tbody>
+    <tr><td>月間案件数（面談数）</td><td>スカウトが面談した人数。入店率の分母になる</td><td>面接日報シート / 面接日列</td></tr>
+    <tr><td>月間入店数</td><td>スカウトが紹介して入店に至った件数</td><td>面接日報シート / 入店日列</td></tr>
+    <tr><td><b>平均継続日数 ★最重要</b></td><td>そのスカウトが紹介した子の平均継続日数。「このスカウトに月いくらまで投資してよいか」の根拠になる</td><td>面接日報 × 在籍永久管理シートを<b>本名でJOIN</b>して算出</td></tr>
+  </tbody>
+</table>
+
+<h3 class="b">③ スカウトタイプ分類（入力枠のみ。判断は現場）</h3>
+<table>
+  <thead><tr><th class="b" style="width:26%">タイプ</th><th class="b">説明</th></tr></thead>
+  <tbody>
+    <tr><td><b>優先度1 — 全部自走型</b></td><td>自分で引いて、関係構築して、入店まで完結できるタイプ</td></tr>
+    <tr><td><b>優先度2 — 面談後押し型</b></td><td>面談だけサポートすれば、その後は自分で動けるタイプ</td></tr>
+    <tr><td><b>優先度3 — 丸投げ型</b></td><td>全工程をかなり担わないと動かないタイプ。今後は投資を最小化したい</td></tr>
+  </tbody>
+</table>
+<p class="note">※ タイプ分類の判断は現場側で実施。システム上はプルダウンで入力できる枠のみ用意。</p>
+</div>
+
+<!-- 2. データ整形の課題 -->
+</div><!-- end page1 -->
+<div class="page">
+<div class="nb">
+<h2 class="a">2．データ整形の作業内容</h2>
+<div class="hl a"><b>最大の課題：退店日データの入力が統一されていない。</b>これがないと継続日数が計算できないため、退店日補完ロジックの実装がMVP作業の核になる。</div>
+
+<h3 class="b">退店日の補完パターン（実データ確認済み）</h3>
+<table>
+  <thead><tr><th class="d" style="width:24%">パターン</th><th class="d" style="width:40%">入力状況</th><th class="d" style="width:8%">件数</th><th class="d">処理方法</th></tr></thead>
+  <tbody>
+    <tr><td>正確な退店日あり</td><td>退店日列に日付が直接入っている</td><td class="num">58件</td><td class="good">そのまま使用</td></tr>
+    <tr><td>ステータスで月を特定</td><td>「当月退店」「先月退店」「先々月退店」</td><td class="num">502件</td><td class="good">シート年月から月15日を採用</td></tr>
+    <tr><td>備考欄に記述あり</td><td>「最終出勤日：9/18」等のテキスト</td><td class="num">9件</td><td>テキスト解析で抽出</td></tr>
+    <tr><td>退店フラグのみ</td><td>N列に「退店」があるが日付不明</td><td class="num">79件</td><td class="warn">当月15日（誤差最小化）</td></tr>
+    <tr><td>在籍中</td><td>退店情報なし</td><td class="num">668件</td><td>現在日を退店日の代替として使用</td></tr>
+  </tbody>
+</table>
+
+<h3 class="b">その他の整形作業</h3>
+<table>
+  <thead><tr><th class="b" style="width:28%">作業</th><th class="b">内容</th><th class="b" style="width:10%">難易度</th></tr></thead>
+  <tbody>
+    <tr><td>全22シート縦結合</td><td>月次シートをフラットなテーブルに統合、年月カラム付与</td><td>低</td></tr>
+    <tr><td>未入店・不採用の除外</td><td>LTV計算対象外のレコードを除外（複数店舗在籍は保持）</td><td>低</td></tr>
+    <tr><td>店舗名の表記ゆれ統一</td><td>「インソー/ラ・レーヌ・ゴート」等の揺れを正規化</td><td>中</td></tr>
+    <tr><td><b>面接日報 × 在籍管理JOIN</b></td><td>本名をキーに2シートを結合。スカウト別②の算出に必須</td><td>中</td></tr>
+    <tr><td>未来入店日データの除外</td><td>入力ミスと思われる78件（2026年12月入店等）を除外</td><td>低</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- 3. フェーズ -->
+<div class="nb">
+<h2 class="b">3．フェーズ構成</h2>
+<div class="ph b">
+  <div class="ph-title b">フェーズ1（MVP） — LTV分析基盤 <span class="badge bd-b">優先</span></div>
+  <table>
+    <thead><tr><th class="b" style="width:26%">機能</th><th class="b">詳細</th></tr></thead>
+    <tbody>
+      <tr><td><b>データ整形・補完</b></td><td>在籍永久管理シート22ヶ月分の整形・退店日補完・面接日報JOIN・DB投入</td></tr>
+      <tr><td><b>店舗別LTV分析画面</b></td><td>①4項目（月間入店数・月末在籍数・月次顧問料・平均継続月数）の一覧・散布図・ランキング</td></tr>
+      <tr><td><b>スカウト別LTV分析画面</b></td><td>②3項目（月間面談数・入店数・平均継続月数）＋ ③タイプ分類プルダウン・投資上限算出</td></tr>
+      <tr><td><b>月次データ取込</b></td><td>新しいシートをインポートして自動再集計</td></tr>
+      <tr><td><b>CSV出力</b></td><td>全分析データのエクスポート</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="ph t">
+  <div class="ph-title t">フェーズ2 — スカウトアプリ・経理システム <span class="badge bd-t">次フェーズ</span></div>
+  <table>
+    <thead><tr><th class="t" style="width:26%">機能</th><th class="t">詳細</th></tr></thead>
+    <tbody>
+      <tr><td>スカウトFlutterアプリ</td><td>スマホからキャスト登録・ステータス変更・後追い管理・Push通知</td></tr>
+      <tr><td>在籍・買取・売上・請求管理</td><td>在籍料自動計算・請求書PDF発行・着金管理</td></tr>
+      <tr><td>業者支払管理</td><td>支払明細PDF・送金フラグ管理</td></tr>
+      <tr><td>App Store / Google Play申請</td><td>ストア申請・リリースまで対応</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="ph a">
+  <div class="ph-title a">フェーズ3以降 <span class="badge bd-g">要相談</span></div>
+  <table>
+    <thead><tr><th class="a">内容</th><th class="a" style="width:18%">時期</th></tr></thead>
+    <tbody>
+      <tr><td>顧客（店舗）・業者（紹介会社）向けアプリ（同一アプリにRole追加）</td><td>要相談</td></tr>
+      <tr><td>マルチテナント・サブスクリプション課金（SaaS化）</td><td>別途相談</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- 4. 工数・費用 -->
+</div><!-- end page1 -->
+<div class="page">
+<div class="nb">
+<h2 class="b">4．フェーズ1 工数・費用</h2>
+
+<div class="g3">
+  <div class="kc"><div class="lb">開発費目安</div><div class="vl" style="font-size:12pt">15〜20万円</div><div class="sb">AIを活用した開発前提の単価設定</div></div>
+  <div class="kc"><div class="lb">開発期間</div><div class="vl">約1ヶ月</div><div class="sb">要件確定後スタート</div></div>
+  <div class="kc"><div class="lb">ランニングコスト</div><div class="vl">¥0〜</div><div class="sb">MVP期は無料枠で運用可</div></div>
+</div>
+
+<table>
+  <thead><tr>
+    <th class="b" style="width:22%">作業</th>
+    <th class="b">内容</th>
+    <th class="b" style="width:14%">目安工数</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>事前調査</b></td><td>面接日報シート（全期間分）のデータ品質確認・構造解析・JOIN可能性の検証。ここで見積もりの精度を確定する</td><td class="num">1〜2人日</td></tr>
+    <tr><td><b>データ整形・補完</b></td><td>在籍永久管理シート22ヶ月分の整形・退店日補完・面接日報JOIN・表記ゆれ統一</td><td class="num">10人日</td></tr>
+    <tr><td><b>DB構築・データ投入</b></td><td>Supabase設計・認証・整形済みデータの投入・数値検証</td><td class="num">8人日</td></tr>
+    <tr><td><b>LTV分析画面</b></td><td>店舗別LTV・スカウト別LTV・月次インポート・CSV出力</td><td class="num">16人日</td></tr>
+    <tr><td><b>テスト・デプロイ</b></td><td>スプレッドシートとの突合確認・本番環境構築・操作レクチャー</td><td class="num">8人日</td></tr>
+    <tr class="total"><td><b>合計</b></td><td></td><td class="num"><b>約44人日</b></td></tr>
+  </tbody>
+</table>
+<p class="note">※ AIを活用した開発前提のため、従来の受託開発と比較して大幅に低い単価での提供です。</p>
+<p class="note">※ ランニングコスト：Supabase・Vercel ともにMVP期は無料枠で対応。ユーザー数増加時に有料プランへ移行（月額約7,000円〜）。</p>
+</div>
+
+<!-- 5. スケジュール -->
+<div class="nb">
+<h3 class="b">開発スケジュール（フェーズ1 / 約1ヶ月）</h3>
+<table>
+  <thead><tr><th class="b" style="width:18%">期間</th><th class="b">内容</th></tr></thead>
+  <tbody>
+    <tr><td>着手前（1〜2日）</td><td>面接日報シート全期間分のデータ品質確認・構造解析。ここで本見積もりを確定する</td></tr>
+    <tr><td>1週目</td><td>データ解析・退店日補完・面接日報JOIN・DB構築</td></tr>
+    <tr><td>2週目</td><td>データ整形・投入・数値検証・手動補完リスト提出</td></tr>
+    <tr><td>3〜4週目</td><td>LTV分析画面（店舗別・スカウト別）・月次インポート・CSV出力</td></tr>
+    <tr><td>4週目後半</td><td>テスト・バグ修正・本番デプロイ・操作レクチャー</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- 6. 技術構成 -->
+<div class="nb">
+<h2 class="d">5．技術構成</h2>
+<table>
+  <thead><tr><th class="d" style="width:20%">役割</th><th class="d" style="width:26%">技術</th><th class="d">理由</th></tr></thead>
+  <tbody>
+    <tr><td>DB・認証</td><td>Supabase (PostgreSQL)</td><td>認証・ストレージ一体。無料枠でMVP運用可能</td></tr>
+    <tr><td>データ整形</td><td>Python (pandas)</td><td>スプレッドシート解析・退店日補完・JOIN処理</td></tr>
+    <tr><td>Web管理画面</td><td>Next.js + PWA</td><td>PCのほかスマホブラウザからも確認可能</td></tr>
+    <tr><td>グラフ描画</td><td>Recharts</td><td>LTV散布図・継続月数棒グラフ・トレンド</td></tr>
+    <tr><td>スマホアプリ（Ph.2）</td><td>Flutter</td><td>iOS・Android を1コードで開発。保守コスト半減</td></tr>
+    <tr><td>PDF生成（Ph.2）</td><td>Puppeteer</td><td>請求書・支払明細書のHTML→PDF出力</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- 7. 打合せ -->
+<div class="nb">
+<h2 class="b">6．打合せで決めたいこと</h2>
+<ul class="cl">
+  <li>月額粗利の基準値（¥20,000/人固定か、店舗・種別ごとに変えるか）</li>
+  <li>退店日不明79件の手動補完をお客様側でやっていただけるか（対応可能な場合は対象リストを出力します）</li>
+  <li>面接日報シートの実データ提供（ダミーデータ1ヶ月分のみ確認済み。全期間分のデータが必要）</li>
+  <li>スカウトタイプ分類の入力タイミング（MVP完成後すぐ入力できる）</li>
+  <li>フェーズ1の費用・支払いタイミング</li>
+  <li>開発開始日</li>
+</ul>
+
+<h3 class="b" style="margin-top:6mm">要相談：フェーズ1でのデータ同期方法</h3>
+<div class="hl a">
+  フェーズ1（MVP）はシステムへのデータ入力機能がないため、スプレッドシートとの同期が課題になります。
+  フェーズ2でスカウトアプリを導入すればDBへの直接入力に移行できますが、それまでの間の運用方法を決める必要があります。
+</div>
+<table>
+  <thead><tr><th class="a" style="width:6%">案</th><th class="a" style="width:22%">方法</th><th class="a">内容・手間</th><th class="a" style="width:18%">予算への影響</th></tr></thead>
+  <tbody>
+    <tr><td><b>A</b></td><td>月1回 手動インポート</td><td>毎月スプレッドシートをアップロードしてLTVを再集計。リアルタイム性はないが運用コストが最小</td><td>なし（現状提案に含む）</td></tr>
+    <tr><td><b>B</b></td><td>Google Sheets API 連携</td><td>スプレッドシートを更新すると自動的にDBに同期。スプレッドシートでの入力フローを継続したい場合に有効</td><td>+数万円</td></tr>
+    <tr><td><b>C</b></td><td>フェーズ1からDB直接入力画面を追加</td><td>フェーズ2相当の入力機能を前倒し実装。スプレッドシートを完全に廃止できる。工数・費用が最も大きい</td><td>+10〜15万円</td></tr>
+  </tbody>
+</table>
+<p class="note">※ 現実的な落としどころとして、フェーズ1はAで運用しながらフェーズ2のスカウトアプリ導入でCに移行するパターンを推奨します。</p>
+</div>
+
+</div><!-- end last page -->
+</body>
+</html>
